@@ -46,7 +46,7 @@ h1,h2,h3,.prompt-word,.q,.unit-card .un{font-family:Georgia,"Times New Roman","S
 .sec-title{font-size:14px;color:var(--sub);margin:18px 4px 10px;font-weight:700}
 .chip{padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:12px;cursor:pointer;color:var(--ink)}
 .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.combo-chip{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:5px 9px;margin:3px 2px;font-size:14px;cursor:pointer}
+.combo-chip{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:7px 11px;margin:4px 3px;font-size:14px;cursor:pointer}
 .combo-chip i{font-style:normal;font-size:10px;color:var(--sub);margin-left:4px}
 .combo-chip .sk{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
 /* ---------- 深色模式 ---------- */
@@ -54,7 +54,7 @@ html.dark{--accent:#D97757;--accent-soft:#3A2E26;--ok:#93B899;--ok-soft:#28332B;
 html.dark .hero{background:var(--accent-soft);border:1px solid var(--line)}
 html.dark .hero h2{color:var(--accent)}
 .example-block{background:var(--bg);border-radius:10px;padding:8px 10px;margin:5px 0;text-align:left;cursor:pointer}
-.example-block .seg{cursor:pointer;border-bottom:1px dashed var(--line)}
+.example-block .seg{cursor:pointer;border-bottom:1px dashed var(--line);padding:3px 1px;margin:-3px -1px}
 .example-block .seg:active{color:var(--accent)}
 .example-block .jp{font-size:14px;font-weight:600}
 .example-block .kn{font-size:11.5px;color:var(--sub);margin-top:2px}
@@ -177,6 +177,11 @@ body.in-practice .tabbar{display:none}
   <!-- ============ 首页 ============ -->
   <div class="topbar"><h1><span class="brand">かなフロー</span> 日语打字</h1><span class="tag">v0.4</span></div>
   <main id="view-home" class="active">
+    <div class="hero" id="onboard" style="display:none">
+      <h2>三步,开始你的日语拼写</h2>
+      <p>① 点「继续学习」认新词:听发音、看组合词和例句;<br>② 立刻拼写:打罗马字实时变假名,错了会提示;<br>③ 点选题巩固,错的词之后自动安排复习。<br>没有每日任务、没有打卡,进度由你掌握——想学就学。</p>
+      <button class="primary-btn" style="margin-top:12px" onclick="closeOnboard()">开始学习</button>
+    </div>
     <div class="task-card" id="review-card" onclick="startReview()" style="display:none;margin-bottom:16px"></div>
     <div class="task-card" id="continue-card" onclick="continueUnit()" style="margin-bottom:16px;cursor:pointer"></div>
     <div class="mode-card" onclick="openUnits()">
@@ -262,7 +267,7 @@ body.in-practice .tabbar{display:none}
   <!-- ============ 打字练习 ============ -->
   <main id="view-type">
     <div class="practice-top">
-      <button class="icon-btn" onclick="exitPractice()">←</button>
+      <button class="icon-btn" onclick="pausePractice()">←</button>
       <div class="stat-pill" id="t-count">第 <b id="t-idx">1</b>/10 题</div>
       <div class="stat-pill" style="margin-left:auto"><b id="t-acc">100</b>%</div>
     </div>
@@ -285,7 +290,7 @@ body.in-practice .tabbar{display:none}
   <!-- ============ 读音选择 ============ -->
   <main id="view-quiz">
     <div class="practice-top">
-      <button class="icon-btn" onclick="exitPractice()">←</button>
+      <button class="icon-btn" onclick="pausePractice()">←</button>
       <div class="stat-pill">第 <b id="q-idx">1</b>/8 题</div>
       <div class="stat-pill" style="margin-left:auto">答对 <b id="q-score">0</b> 题</div>
     </div>
@@ -300,7 +305,7 @@ body.in-practice .tabbar{display:none}
   <!-- ============ 新词学习 ============ -->
   <main id="view-learn">
     <div class="practice-top">
-      <button class="icon-btn" onclick="exitPractice()">←</button>
+      <button class="icon-btn" onclick="pausePractice()">←</button>
       <div class="stat-pill" id="l-diff" style="margin-left:auto">入门词</div>
       <div class="stat-pill">第 <b id="l-idx">1</b>/<b id="l-total">3</b> 个新词</div>
     </div>
@@ -360,6 +365,16 @@ body.in-practice .tabbar{display:none}
     </div>
     <button class="ghost-btn" onclick="resetStats()">清空学习进度</button>
 
+    <h3 class="sec-title" style="margin-top:22px">发音语速</h3>
+    <div class="stat-card" style="grid-column:1/-1">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="chip" data-rate="0.65" onclick="setRate(0.65)">慢速</button>
+        <button class="chip" data-rate="0.85" onclick="setRate(0.85)">正常</button>
+        <button class="chip" onclick="speak('こんにちは')">🔊 试听</button>
+        <span class="tip" style="margin:0 0 0 auto">点慢速会读一遍示例</span>
+      </div>
+    </div>
+
     <h3 class="sec-title" style="margin-top:22px">生词本</h3>
     <div class="mode-card" onclick="switchTab('custom')">
       <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></div>
@@ -415,6 +430,7 @@ body.in-practice .tabbar{display:none}
       <div class="emoji" id="r-emoji" style="color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m8 12.5 3 3 5.5-6.5"/></svg></div>
       <h2 id="r-title">一组完成!</h2>
       <div id="r-rows"></div>
+      <button class="primary-btn" id="r-extra" style="display:none;margin-top:0;background:none;color:var(--accent);border:2px solid var(--accent)"></button>
       <button class="primary-btn" id="r-again">再来一组</button>
       <button class="plain-btn" onclick="exitPractice()">返回首页</button>
     </div>
@@ -687,6 +703,19 @@ function exitPractice(){
   $('overlay').classList.remove('show');
   document.body.classList.remove('in-practice');
   switchTab('home');
+}
+function pausePractice(){ // 练习中途退出:先弹小结,进度不丢,可选择继续
+  const inT = T.list.length > 0 && T.idx < T.list.length;
+  const inQ = Q.list.length > 0 && Q.idx < Q.list.length;
+  const onLearn = document.querySelector('main.active').id === 'view-learn';
+  if (!(inT || inQ || onLearn)) return exitPractice();
+  let done, total, label;
+  if (inQ && Q.flow){ done = Math.max(0, F.i - 1); total = F.queue.length; label = F.label || '单元练习'; } // 单元流程按总队列算进度
+  else if (inQ){ done = Q.idx; total = Q.list.length; label = '读音选择'; }
+  else { done = T.idx; total = T.list.length; label = T.pillText || '自由练习'; }
+  showResult('本组暂停', '已完成 ' + done + '/' + total + ',随时可以回来继续', [
+    ['本组', label], ['剩余', (total - done) + ' 题'],
+  ], () => {}, null, '继续练习');
 }
 
 /* ================= 打字练习(方案 A) ================= */
@@ -1025,6 +1054,7 @@ function startUnit(ui){
   const u = buildUnits()[ui]; const m = wstate();
   F.label = u.name; F.i = 0; F.wrong = 0;
   F.rerun = () => startUnit(ui);
+  F.next = buildUnits()[ui + 1] ? () => startUnit(ui + 1) : null; // 结果页「继续下一组」
   F.queue = [];
   // 新词:学习卡(认一认 → 立刻拼写,拼写由 learnGoSpell 的回调衔接推进);
   // 再整单元点选测试
@@ -1033,7 +1063,7 @@ function startUnit(ui){
   runNext();
 }
 function startReview(){
-  F.label = '复习'; F.i = 0; F.wrong = 0; F.rerun = startReview;
+  F.label = '复习巩固'; F.i = 0; F.wrong = 0; F.rerun = startReview; F.next = null;
   F.queue = [];
   dueWords().forEach(w=>{ F.queue.push({type:'choice', w}); F.queue.push({type:'spell', w}); });
   runNext();
@@ -1261,9 +1291,10 @@ function learnGoSpell(){
 }
 function finishFlow(){
   if(F.queue.length === 0) return exitPractice();
+  const extra = F.next ? { label: '继续下一组 →', fn: F.next } : null;
   showResult(F.label + ' 完成!', F.wrong ? '出错 ' + F.wrong + ' 次,出错的词稍后会安排复习' : '全部正确,漂亮!', [
     ['本组步骤', F.queue.length + ' 步'], ['出错', F.wrong + ' 次'], ['已学词数', knownCount() + '/' + WORDS.length],
-  ], F.rerun || (() => exitPractice()));
+  ], F.rerun || (() => exitPractice()), extra);
 }
 function renderHome(){
   const due = dueWords();
@@ -1566,7 +1597,7 @@ function toggleTheme(){
 }
 
 /* ================= 结果浮层 ================= */
-function showResult(title, headline, rows, onAgain){
+function showResult(title, headline, rows, onAgain, extra, againLabel){
   $('r-title').textContent = title;
   $('r-emoji').innerHTML = '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m8 12.5 3 3 5.5-6.5"/></svg>'; $('r-emoji').style.color = 'var(--accent)';
   const box = $('r-rows');
@@ -1581,6 +1612,13 @@ function showResult(title, headline, rows, onAgain){
     d.innerHTML = `<span>${k}</span><b>${v}</b>`;
     box.appendChild(d);
   });
+  const ex = $('r-extra');
+  if (extra){
+    ex.style.display = 'block';
+    ex.textContent = extra.label;
+    ex.onclick = () => { $('overlay').classList.remove('show'); extra.fn(); };
+  } else ex.style.display = 'none';
+  $('r-again').textContent = againLabel || '再来一组';
   $('r-again').onclick = () => { $('overlay').classList.remove('show'); onAgain(); };
   $('overlay').classList.add('show');
 }
@@ -1775,11 +1813,17 @@ function buildKana(){
     area.appendChild(grid);
   });
 }
+function ttsRate(){ return parseFloat(localStorage.getItem('kf_rate') || '0.85') || 0.85; }
+function setRate(r, silent){
+  localStorage.setItem('kf_rate', String(r));
+  document.querySelectorAll('[data-rate]').forEach(b => b.classList.toggle('on', parseFloat(b.dataset.rate) === r));
+  if (!silent) speak('こんにちは');
+}
 function speak(text){
   if (!window.speechSynthesis) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'ja-JP'; u.rate = 0.85;
+  u.lang = 'ja-JP'; u.rate = ttsRate();
   speechSynthesis.speak(u);
 }
 
@@ -1788,6 +1832,12 @@ renderStats();
 renderHome();
 applyTheme();
 loadBank();
+setRate(ttsRate(), true);
+if (!localStorage.getItem('kf_onboard')) document.getElementById('onboard').style.display = '';
+function closeOnboard(){
+  localStorage.setItem('kf_onboard', '1');
+  document.getElementById('onboard').style.display = 'none';
+}
 /* PWA:注册 service worker(仅 http/https;需 localhost 或 HTTPS 才生效) */
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol))
   addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
