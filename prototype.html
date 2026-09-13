@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#C15F3C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<title>かなフロー · 日语打字练习(原型)</title>
+<style>
+:root{
+  --accent:#C15F3C; --accent-soft:#F5E7DE; --ok:#4E7A5A; --ok-soft:#E9EFE6;
+  --bad:#B3413C; --bad-soft:#F6E7E4; --ink:#26241F; --sub:#847C6C;
+  --bg:#F4F0E5; --card:#FDFCF7; --line:#E3DDCC;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--ink); display:flex; justify-content:center;
+}
+#app{width:100%;max-width:480px;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);position:relative}
+main{flex:1;overflow-y:auto;padding:24px 20px calc(24px + env(safe-area-inset-bottom));scrollbar-width:none;-ms-overflow-style:none}
+main::-webkit-scrollbar{display:none}
+main{display:none;animation:fade .18s ease}
+main.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- 顶部 ---------- */
+.topbar{padding:18px 20px 8px;display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.topbar h1{font-size:clamp(16px,5.2vw,20px);letter-spacing:.5px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
+.topbar .tag{flex-shrink:0}
+.topbar .brand{color:var(--accent);font-weight:800}
+.tag{font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:3px 8px;font-weight:600}
+
+/* ---------- 首页 ---------- */
+.hero{background:var(--accent-soft);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;position:relative}
+.hero::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:3px;background:var(--accent);border-radius:0 3px 3px 0}
+.hero h2{font-size:20px;margin-bottom:6px;color:var(--accent)}
+.hero p{font-size:13px;color:var(--sub);line-height:1.7}
+/* 书籍风格:标题衬线字 */
+h1,h2,h3,.prompt-word,.q,.unit-card .un{font-family:Georgia,"Times New Roman","Songti SC","STSong","SimSun",serif}
+.sec-title{font-size:14px;color:var(--sub);margin:18px 4px 10px;font-weight:700}
+.chip{padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:12px;cursor:pointer;color:var(--ink)}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.combo-chip{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:10px;padding:5px 9px;margin:3px 2px;font-size:14px;cursor:pointer}
+.combo-chip i{font-style:normal;font-size:10px;color:var(--sub);margin-left:4px}
+.combo-chip .sk{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+/* ---------- 深色模式 ---------- */
+html.dark{--accent:#D97757;--accent-soft:#3A2E26;--ok:#93B899;--ok-soft:#28332B;--bad:#E07A6E;--bad-soft:#412D29;--ink:#EDE7DA;--sub:#A69D8A;--bg:#201E1A;--card:#2A2721;--line:#3D3930}
+html.dark .hero{background:var(--accent-soft);border:1px solid var(--line)}
+html.dark .hero h2{color:var(--accent)}
+.example-block{background:var(--bg);border-radius:10px;padding:8px 10px;margin:5px 0;text-align:left;cursor:pointer}
+.example-block .jp{font-size:14px;font-weight:600}
+.example-block .kn{font-size:11.5px;color:var(--sub);margin-top:2px}
+.example-block .zh{font-size:11.5px;color:var(--accent);margin-top:2px;opacity:.85}
+/* 扁平线性图标 */
+.ic{width:1.15em;height:1.15em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-0.22em}
+.unit-sec{font-size:12px;color:var(--sub);margin:20px 2px 10px;font-weight:700;display:flex;align-items:center;cursor:pointer;user-select:none}
+.unit-sub{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--sub)}
+.unit-sub .arr{transition:transform .15s}
+.unit-sub.open .arr{transform:rotate(90deg)}
+.unit-sec .arr{margin-left:auto;font-size:11px;transition:transform .15s}
+.unit-sec.open .arr{transform:rotate(90deg)}
+.unit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 16px}
+.unit-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;transition:transform .1s}
+.unit-card:active{transform:scale(.97)}
+.unit-card .un{font-size:14px;font-weight:700}
+.unit-card .up{font-size:11px;color:var(--sub);margin-top:3px;line-height:1.4}
+.unit-bar{height:4px;background:var(--line);border-radius:99px;margin-top:8px;overflow:hidden}
+.unit-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.unk-chip{display:inline-block;min-width:30px;text-align:center;background:var(--bad-soft);color:var(--bad);border-radius:8px;padding:6px 8px;margin:3px;font-size:17px;font-weight:700}
+.ruby-text{font-size:17px;line-height:2.4;text-align:left;margin-top:10px;color:var(--ink)}
+.ruby-text rt{font-size:10px;color:var(--sub)}
+ruby.tok-known{color:var(--accent)}
+.task-card{background:var(--card);border:2px solid var(--accent);border-radius:16px;padding:18px;cursor:pointer;transition:transform .1s}
+.task-card:active{transform:scale(.98)}
+.task-card h2{font-size:18px;color:var(--accent);margin-bottom:6px}
+.task-card p{font-size:13px;color:var(--sub);line-height:1.6}
+#review-card{border-color:var(--line)}
+#review-card h2{color:var(--ink)}
+.mode-card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;border:1px solid var(--line);cursor:pointer;transition:transform .1s}
+.mode-card:active{transform:scale(.98)}
+.mode-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.mode-card h3{font-size:16px;margin-bottom:3px}
+.mode-card p{font-size:12.5px;color:var(--sub);line-height:1.5}
+.mode-card .arrow{margin-left:auto;color:#c3c8d8;font-size:18px}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:2px}
+
+/* ---------- 练习(打字) ---------- */
+.practice-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:17px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.stat-pill{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12px;color:var(--sub);white-space:nowrap}
+.stat-pill b{color:var(--ink);font-size:14px}
+.prompt-card{background:var(--card);border-radius:18px;padding:22px 16px;text-align:center;border:1px solid var(--line);margin-bottom:14px}
+.prompt-word{font-size:34px;font-weight:700;line-height:1.3}
+.prompt-sub{font-size:12.5px;color:var(--sub);margin-top:6px}
+.target-line{font-size:27px;letter-spacing:5px;margin-top:14px;font-weight:600;word-break:keep-all}
+.target-line .c{color:#c9cede}
+.target-line .c.done{color:var(--ok)}
+.target-line .c.cur{color:var(--ink);background:var(--accent-soft);border-radius:5px}
+.target-line .c.err{color:#fff;background:var(--bad)}
+.type-input{width:100%;font-size:22px;text-align:center;padding:15px 12px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);outline:none;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:2px;transition:border-color .15s}
+.type-input::placeholder{color:var(--sub)}
+/* 深色模式兜底:表单元素文字不自动继承,显式反色 */
+html.dark input,html.dark textarea{color:var(--ink);caret-color:var(--ink)}
+html.dark ::placeholder{color:var(--sub);opacity:1}
+.type-input:focus{border-color:var(--accent)}
+.type-input.shake{animation:shake .3s}
+.type-input.good{border-color:var(--ok);background:var(--ok-soft)}
+.type-input.bad{border-color:var(--bad);background:var(--bad-soft)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.progress-bar{height:6px;background:var(--line);border-radius:99px;margin:14px 0 4px;overflow:hidden}
+.progress-bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s}
+.tip{font-size:12px;color:var(--sub);text-align:center;margin-top:10px;line-height:1.6}
+
+/* ---------- 选择模式 ---------- */
+.quiz-prompt{background:var(--card);border-radius:18px;padding:30px 16px;text-align:center;border:1px solid var(--line);margin-bottom:16px}
+.quiz-prompt .q{font-size:38px;font-weight:700}
+.quiz-prompt .qs{font-size:13px;color:var(--sub);margin-top:8px}
+.opt{width:100%;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:15px;font-size:20px;margin-bottom:10px;cursor:pointer;font-weight:600;color:var(--ink);transition:transform .1s}
+.opt:active{transform:scale(.98)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.opt:disabled{cursor:default}
+.opt-zh{display:block;font-size:12px;font-weight:400;margin-top:2px;color:var(--sub)}
+.next-bar{display:flex;gap:10px;margin-top:14px}
+.next-bar .primary-btn{flex:1.6}
+.next-bar .ghost-btn{flex:1;border:2px solid var(--line);border-radius:14px;padding:12px;font-size:14px;font-weight:700;color:var(--sub);background:none;cursor:pointer}
+
+/* ---------- 五十音 ---------- */
+.kana-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px}
+.kana-grid.cols3{grid-template-columns:repeat(3,1fr)}
+.kana-grid.cols3 .kana{font-size:16px;padding:9px 0}
+.kana-grid.cols3 .kana i{font-size:9px}
+.kana{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 0 8px;text-align:center;font-size:20px;cursor:pointer;font-weight:600;color:var(--ink)}
+.kana i{display:block;font-style:normal;font-size:10px;font-weight:400;color:var(--sub);margin-top:3px;letter-spacing:.5px}
+.kana:active{background:var(--accent-soft);border-color:var(--accent)}
+.kana.playing{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid-note{font-size:12px;color:var(--sub);margin-top:12px;text-align:center}
+
+/* ---------- 我的 ---------- */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.stat-card .v{font-size:24px;font-weight:800;color:var(--accent)}
+.stat-card .l{font-size:12px;color:var(--sub);margin-top:4px}
+.ghost-btn{width:100%;padding:13px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--sub);font-size:14px;margin-top:14px;cursor:pointer}
+
+/* ---------- 底部导航 ---------- */
+.tabbar{display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));position:sticky;bottom:0;z-index:40}
+.tabbar button{flex:1;background:none;border:none;padding:7px 0;font-size:11px;color:var(--sub);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar button .ti{font-size:20px}
+.tabbar button.on{color:var(--accent);font-weight:700}
+body.in-practice .tabbar{display:none}
+
+/* ---------- 结果浮层 ---------- */
+.overlay{position:fixed;inset:0;background:rgba(28,32,51,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+.overlay.show{display:flex}
+.result-card{background:var(--card);border-radius:22px;padding:26px 22px;width:100%;max-width:340px;text-align:center;animation:pop .25s ease}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.result-card h2{font-size:20px;margin-bottom:4px}
+.result-card .emoji{font-size:44px;margin-bottom:8px}
+.result-row{display:flex;justify-content:space-between;padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px;color:var(--sub)}
+.result-row b{color:var(--ink);font-size:16px}
+.primary-btn{width:100%;padding:14px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;margin-top:16px;cursor:pointer}
+.plain-btn{width:100%;padding:12px;border:none;background:none;color:var(--sub);font-size:13px;margin-top:6px;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ 首页 ============ -->
+  <div class="topbar"><h1><span class="brand">かなフロー</span> 日语打字</h1><span class="tag">v0.4</span></div>
+  <main id="view-home" class="active">
+    <div class="task-card" id="review-card" onclick="startReview()" style="display:none;margin-bottom:16px"></div>
+    <div class="task-card" id="continue-card" onclick="continueUnit()" style="margin-bottom:16px;cursor:pointer"></div>
+    <div class="mode-card" onclick="openUnits()">
+      <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5.5h16M4 12h16M4 18.5h10"/></svg></div>
+      <div>
+        <h3>单元选择</h3>
+        <p>入门 / 基础 / 进阶三个篇章,按难度递进(3500+ 词)</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
+    <h3 class="sec-title">兴趣内容 · 练你喜欢的</h3>
+    <div class="mode-card" onclick="startPack()">
+      <div class="mode-icon" style="background:#f1ead8;color:#8a6d2f"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="7.5" width="14" height="13" rx="2"/><path d="M9 7.5V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2.5"/><path d="M9 11v6M15 11v6"/></svg></div>
+      <div>
+        <h3>旅行日语 · 实用短句</h3>
+        <p>点餐、问路、购物的高频句子,整句拼写练习(兴趣包示例)</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="mode-card" onclick="openTextStudy()">
+      <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 2.5h6v3H9z"/><path d="M9 11h6M9 15h6"/></svg></div>
+      <div>
+        <h3>粘贴日文 · 学拼写<span class="badge" style="background:var(--accent-soft);color:var(--accent)">自制课程 v0</span></h3>
+        <p>粘贴课文/歌词/台词,自动匹配词库生成拼写练习</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
+    <h3 class="sec-title">自由练习</h3>
+    <div class="mode-card" onclick="startQuizDrill()">
+      <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6.5 5 12l4 5.5"/><path d="M15 6.5 19 12l-4 5.5"/><path d="M13 4.5 11 19.5"/></svg></div>
+      <div>
+        <h3>读音选择</h3>
+        <p>看汉字选假名读音,10 题 · 优先考学过的词 · 干扰项同难度近似音</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="mode-card" onclick="startType()">
+      <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></div>
+      <div>
+        <h3>打字练习</h3>
+        <p>随机 10 词,罗马字自动转假名,实时判定正确率</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="mode-card" onclick="switchTab('kana')">
+      <div class="mode-icon" style="background:var(--ok-soft);color:var(--ok);font-weight:800">あ</div>
+      <div>
+        <h3>五十音表</h3>
+        <p>104 音 · 平/片切换 · 打字关卡</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
+  </main>
+
+  <!-- ============ 单元选择(二级页) ============ -->
+  <main id="view-units">
+    <div class="practice-top">
+      <button class="icon-btn" onclick="switchTab('home')">←</button>
+      <h2 style="font-size:18px">单元选择</h2>
+    </div>
+    <p class="tip" style="margin-top:0">按难度递进:入门篇(两三假名短词)→ 基础篇(N5/N4)→ 进阶篇(N3)。每个单元 = 新词学习卡 + 点选测验,进度由你掌握。</p>
+    <div id="unit-list"></div>
+  </main>
+
+  <!-- ============ 打字练习 ============ -->
+  <main id="view-type">
+    <div class="practice-top">
+      <button class="icon-btn" onclick="exitPractice()">←</button>
+      <div class="stat-pill" id="t-count">第 <b id="t-idx">1</b>/10 题</div>
+      <div class="stat-pill" style="margin-left:auto"><b id="t-acc">100</b>%</div>
+    </div>
+    <div class="prompt-card">
+      <button class="icon-btn" id="t-dict-btn" style="display:none;margin:0 auto 10px" onclick="replayDict()"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+      <div class="prompt-word" id="t-word">学校</div>
+      <div class="prompt-sub" id="t-sub">请用罗马字打出它的假名写法</div>
+      <div class="target-line" id="t-target"></div>
+    </div>
+    <input id="t-input" class="type-input" placeholder="在这里输入 romaji" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next">
+    <button class="ghost-btn" id="t-skip" style="display:none;margin-top:10px" onclick="giveUpWord()">不会,看答案</button>
+    <div id="t-choose" style="display:none;gap:8px;margin-top:10px">
+      <button class="ghost-btn" style="flex:1;margin-top:0" onclick="retryWord()">↻ 重试</button>
+      <button class="ghost-btn" style="flex:1;margin-top:0;background:var(--accent);color:#fff;border-color:var(--accent)" onclick="nextWord()">下一个 →</button>
+    </div>
+    <div class="progress-bar"><i id="t-prog" style="width:10%"></i></div>
+    <p class="tip">提示:shi / si 均可、促音打双辅音(如 gakkou)、拨音可直接打 n</p>
+  </main>
+
+  <!-- ============ 读音选择 ============ -->
+  <main id="view-quiz">
+    <div class="practice-top">
+      <button class="icon-btn" onclick="exitPractice()">←</button>
+      <div class="stat-pill">第 <b id="q-idx">1</b>/8 题</div>
+      <div class="stat-pill" style="margin-left:auto">答对 <b id="q-score">0</b> 题</div>
+    </div>
+    <div class="quiz-prompt">
+      <button class="icon-btn" style="margin:0 auto 10px" onclick="speak(window._qWord&&window._qWord.kana)" title="播放发音"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+      <div class="q" id="q-word">食べる</div>
+      <div class="qs">它的假名读音是?</div>
+    </div>
+    <div id="q-opts"></div>
+  </main>
+
+  <!-- ============ 新词学习 ============ -->
+  <main id="view-learn">
+    <div class="practice-top">
+      <button class="icon-btn" onclick="exitPractice()">←</button>
+      <div class="stat-pill" id="l-diff" style="margin-left:auto">入门词</div>
+      <div class="stat-pill">第 <b id="l-idx">1</b>/<b id="l-total">3</b> 个新词</div>
+    </div>
+    <div class="quiz-prompt">
+      <button class="icon-btn" style="margin:0 auto 10px" onclick="speak(window._lWord&&window._lWord.kana)"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+      <div class="q" id="l-word">猫</div>
+      <div class="qs" id="l-kana">ねこ · neko</div>
+      <div class="qs" id="l-meaning">cat · 猫</div>
+      <div id="l-combos" style="margin-top:10px"></div>
+      <div id="l-examples" style="margin-top:10px"></div>
+      <div class="qs" style="margin-top:10px">听发音,记住写法,接下来立刻拼写一遍</div>
+    </div>
+    <button class="primary-btn" onclick="learnGoSpell()">记住了,开始拼写 →</button>
+  </main>
+
+  <!-- ============ 粘贴文本学拼写 ============ -->
+  <main id="view-text">
+    <div class="practice-top">
+      <button class="icon-btn" onclick="exitPractice()">←</button>
+      <h2 style="font-size:18px">粘贴日文 · 学拼写</h2>
+    </div>
+    <p class="tip" style="margin-top:0">粘贴课文/歌词/台词,自动找出词库里可学的词并生成拼写练习(词库外暂不注音,属自制课程 v1 范围)</p>
+    <textarea id="text-input" class="type-input" style="height:120px;text-align:left;font-size:15px;letter-spacing:0;padding:12px" placeholder="例:今日は学校で日本語を勉強しました。"></textarea>
+    <button class="primary-btn" style="margin-top:10px" onclick="analyzeText()">分析文本</button>
+    <div id="text-result"></div>
+  </main>
+
+  <!-- ============ 五十音 ============ -->
+  <main id="view-kana">
+    <div class="practice-top" style="margin-bottom:2px">
+      <h2 style="font-size:18px">五十音 · 全 104 音</h2>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="chip on" id="k-hira" onclick="setKanaScript(false)">あ</button>
+        <button class="chip" id="k-kata" onclick="setKanaScript(true)">ア</button>
+      </div>
+    </div>
+    <p class="tip" style="margin:0 0 4px">点击假名听发音;平/片假名可切换。学两个音就练两个:</p>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button class="chip" onclick="startKanaDrill(false)">⌨️ 清音打字 ×10</button>
+      <button class="chip" onclick="startKanaDrill(true)">⌨️ 全音打字 ×10</button>
+    </div>
+    <div id="kana-area"></div>
+  </main>
+
+  <!-- ============ 我的 ============ -->
+  <main id="view-me">
+    <div class="practice-top" style="margin-bottom:14px"><h2 style="font-size:18px">我的练习</h2>
+      <button class="chip" style="margin-left:auto" id="theme-btn" onclick="toggleTheme()">🌙 深色</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="v" id="m-sessions">0</div><div class="l">累计练习组数</div></div>
+      <div class="stat-card"><div class="v" id="m-chars">0</div><div class="l">累计打对假名数</div></div>
+      <div class="stat-card"><div class="v" id="m-master">0</div><div class="l">已巩固词数</div></div>
+      <div class="stat-card"><div class="v" id="m-acc">—</div><div class="l">总体准确率</div></div>
+      <div class="stat-card"><div class="v" id="m-known">0</div><div class="l">已学词数</div></div>
+      <div class="stat-card"><div class="v" id="m-due">0</div><div class="l">到期复习词数</div></div>
+    </div>
+    <button class="ghost-btn" onclick="advanceDay()">⏩ 模拟过一天(演示复习调度)</button>
+    <button class="ghost-btn" onclick="resetStats()">清空学习进度</button>
+
+    <h3 class="sec-title" style="margin-top:22px">错词本</h3>
+    <div class="stat-card" style="grid-column:1/-1">
+      <div id="wrong-list"></div>
+      <button class="ghost-btn" style="margin-top:8px" onclick="drillWrong()">专练错词 ×10</button>
+    </div>
+
+    <h3 class="sec-title" style="margin-top:22px">外挂词库导入</h3>
+    <div class="stat-card" style="grid-column:1/-1">
+      <div class="l" style="line-height:1.7">支持 CSV/TSV 或 JSON,每行一词:<br><b>汉字,假名[,罗马字][,难度1-3]</b><br>罗马字缺省自动注音,难度缺省为基础词。当前:<b id="im-count">—</b></div>
+      <textarea id="import-text" style="width:100%;height:90px;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace" placeholder="猫,ねこ,neko,1&#10;学校,がっこう,gakkou,3"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="ghost-btn" style="margin-top:0;flex:1" onclick="document.getElementById('import-file').click()">选文件</button>
+        <button class="ghost-btn" style="margin-top:0;flex:1;background:var(--accent);color:#fff;border-color:var(--accent)" onclick="doImport()">导入</button>
+        <button class="ghost-btn" style="margin-top:0;flex:1" onclick="clearCustom()">清空自定义</button>
+      </div>
+      <input type="file" id="import-file" accept=".csv,.txt,.tsv,.json" style="display:none">
+      <div class="l" id="import-msg" style="margin-top:8px;color:var(--accent)"></div>
+    </div>
+    <p class="tip">原型的所有进度仅保存在本机 localStorage。正式版:PWA 离线 + 登录云同步。</p>
+  </main>
+
+  <!-- ============ 底部导航 ============ -->
+  <nav class="tabbar">
+    <button class="on" data-tab="home" onclick="switchTab('home')"><span class="ti"><svg class="ic" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>练习</button>
+    <button data-tab="kana" onclick="switchTab('kana')"><span class="ti" style="font-weight:800">あ</span>五十音</button>
+    <button data-tab="me" onclick="switchTab('me')"><span class="ti"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-3.9 3.6-6.5 8-6.5s8 2.6 8 6.5"/></svg></span>我的</button>
+  </nav>
+
+  <!-- ============ 结果浮层 ============ -->
+  <div class="overlay" id="overlay">
+    <div class="result-card">
+      <div class="emoji" id="r-emoji" style="color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m8 12.5 3 3 5.5-6.5"/></svg></div>
+      <h2 id="r-title">一组完成!</h2>
+      <div id="r-rows"></div>
+      <button class="primary-btn" id="r-again">再来一组</button>
+      <button class="plain-btn" onclick="exitPractice()">返回首页</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= 词库:内置 N5 基础库 + 可外挂导入的自定义库 ================= */
+// d1:两三个假名的入门词 / d2:三四假名常用词(含拨音) / d3:含拗音、促音、长音
+const BASE_WORDS = [
+  {kanji:'猫',kana:'ねこ',romaji:'neko',d:1},
+  {kanji:'駅',kana:'えき',romaji:'eki',d:1},
+  {kanji:'家',kana:'いえ',romaji:'ie',d:1},
+  {kanji:'犬',kana:'いぬ',romaji:'inu',d:1},
+  {kanji:'雨',kana:'あめ',romaji:'ame',d:1},
+  {kanji:'山',kana:'やま',romaji:'yama',d:1},
+  {kanji:'水',kana:'みず',romaji:'mizu',d:1},
+  {kanji:'空',kana:'そら',romaji:'sora',d:1},
+  {kanji:'目',kana:'め',romaji:'me',d:1},
+  {kanji:'手',kana:'て',romaji:'te',d:1},
+  {kanji:'花',kana:'はな',romaji:'hana',d:1},
+  {kanji:'月',kana:'つき',romaji:'tsuki',d:1},
+  {kanji:'川',kana:'かわ',romaji:'kawa',d:1},
+  {kanji:'木',kana:'き',romaji:'ki',d:1},
+  {kanji:'鳥',kana:'とり',romaji:'tori',d:1},
+  {kanji:'牛',kana:'うし',romaji:'ushi',d:1},
+  {kanji:'昼',kana:'ひる',romaji:'hiru',d:1},
+  {kanji:'夜',kana:'よる',romaji:'yoru',d:1},
+  {kanji:'日本',kana:'にほん',romaji:'nihon',d:2},
+  {kanji:'電話',kana:'でんわ',romaji:'denwa',d:2},
+  {kanji:'ご飯',kana:'ごはん',romaji:'gohan',d:2},
+  {kanji:'元気',kana:'げんき',romaji:'genki',d:2},
+  {kanji:'天気',kana:'てんき',romaji:'tenki',d:2},
+  {kanji:'時間',kana:'じかん',romaji:'jikan',d:2},
+  {kanji:'仕事',kana:'しごと',romaji:'shigoto',d:2},
+  {kanji:'家族',kana:'かぞく',romaji:'kazoku',d:2},
+  {kanji:'友達',kana:'ともだち',romaji:'tomodachi',d:2},
+  {kanji:'食べる',kana:'たべる',romaji:'taberu',d:2},
+  {kanji:'カメラ',kana:'かめら',romaji:'kamera',d:2},
+  {kanji:'肉',kana:'にく',romaji:'niku',d:2},
+  {kanji:'魚',kana:'さかな',romaji:'sakana',d:2},
+  {kanji:'野菜',kana:'やさい',romaji:'yasai',d:2},
+  {kanji:'果物',kana:'くだもの',romaji:'kudamono',d:2},
+  {kanji:'部屋',kana:'へや',romaji:'heya',d:2},
+  {kanji:'車',kana:'くるま',romaji:'kuruma',d:2},
+  {kanji:'電気',kana:'でんき',romaji:'denki',d:2},
+  {kanji:'薬',kana:'くすり',romaji:'kusuri',d:2},
+  {kanji:'大学',kana:'だいがく',romaji:'daigaku',d:2},
+  {kanji:'名前',kana:'なまえ',romaji:'namae',d:2},
+  {kanji:'質問',kana:'しつもん',romaji:'shitsumon',d:2},
+  {kanji:'お酒',kana:'おさけ',romaji:'osake',d:2},
+  {kanji:'運動',kana:'うんどう',romaji:'undou',d:2},
+  {kanji:'散歩',kana:'さんぽ',romaji:'sanpo',d:2},
+  {kanji:'宿題',kana:'しゅくだい',romaji:'shukudai',d:2},
+  {kanji:'学校',kana:'がっこう',romaji:'gakkou',d:3},
+  {kanji:'先生',kana:'せんせい',romaji:'sensei',d:3},
+  {kanji:'学生',kana:'がくせい',romaji:'gakusei',d:3},
+  {kanji:'会社',kana:'かいしゃ',romaji:'kaisha',d:3},
+  {kanji:'旅行',kana:'りょこう',romaji:'ryokou',d:3},
+  {kanji:'勉強',kana:'べんきょう',romaji:'benkyou',d:3},
+  {kanji:'病院',kana:'びょういん',romaji:'byouin',d:3},
+  {kanji:'図書館',kana:'としょかん',romaji:'toshokan',d:3},
+  {kanji:'新幹線',kana:'しんかんせん',romaji:'shinkansen',d:3},
+  {kanji:'難しい',kana:'むずかしい',romaji:'muzukashii',d:3},
+  {kanji:'自転車',kana:'じてんしゃ',romaji:'jitensha',d:3},
+  {kanji:'冷蔵庫',kana:'れいぞうこ',romaji:'reizouko',d:3},
+  {kanji:'病気',kana:'びょうき',romaji:'byouki',d:3},
+  {kanji:'お茶',kana:'おちゃ',romaji:'ocha',d:3},
+  {kanji:'出張',kana:'しゅっちょう',romaji:'shutchou',d:3},
+  {kanji:'掃除',kana:'そうじ',romaji:'souji',d:3},
+  {kanji:'お弁当',kana:'おべんとう',romaji:'obentou',d:3},
+];
+BASE_WORDS.forEach((w,i)=>{ w.id = 'b'+i; w.order = i; });
+
+/* ---- 自定义词库(外挂导入,localStorage 持久化) ---- */
+function loadCustomWords(){
+  let arr = [];
+  try { arr = JSON.parse(localStorage.getItem('kf_custom')) || []; } catch(e){}
+  arr.forEach((w,i)=>{ w.id = w.id || ('c'+i); w.d = w.d || 2; w.order = 1000 + i; });
+  return arr;
+}
+function saveCustomWords(arr){ localStorage.setItem('kf_custom', JSON.stringify(arr)); }
+/* ---- 内置 JLPT 词库(启动时异步加载;与自定义词去重并把学习记录迁移到内置词条) ---- */
+const BANK_FILES = [['n5','jlpt-n5-words.csv',1],['n4','jlpt-n4-words.csv',2],['n3','jlpt-n3-words.csv',3]];
+let BANK = [];
+function parseBankCsv(text, d, pre){
+  return text.split('\n').filter(l => l.trim()).map((l, i) => {
+    const p = splitCsv(l);
+    return { id: pre + '-' + i, kanji: p[0], kana: p[1] || p[0], romaji: kanaToRomaji(p[1] || p[0]), d: +(p[3]) || d, meaning: p[4] || '', order: (d - 1) * 100000 + i };
+  }).filter(w => w.kanji && w.kana);
+}
+function loadBank(){
+  Promise.all(BANK_FILES.map(([pre, file, d]) =>
+    fetch(file).then(r => r.ok ? r.text() : '').catch(() => '').then(t => t ? parseBankCsv(t, d, pre) : [])
+  )).then(lists => {
+    BANK = lists.flat();
+    if (!BANK.length) return;
+    migrateCustomIntoBank();
+    refreshWords();
+    renderHome();
+  });
+}
+function migrateCustomIntoBank(){ // 之前手动导入过的词若与内置库重复,转正并保留进度
+  const m = wstate(); let moved = false;
+  const custom = loadCustomWords();
+  const key = w => w.kanji + '|' + w.kana;
+  const bankKeys = new Set(BANK.map(key));
+  const kept = custom.filter(cw => {
+    if (!bankKeys.has(key(cw))) return true;
+    if (m[cw.id]){ const hit = BANK.find(bw => key(bw) === key(cw)); if (hit){ m[hit.id] = m[cw.id]; moved = true; } }
+    return false;
+  });
+  if (kept.length !== custom.length){ saveCustomWords(kept); if (moved) wsave(m); }
+}
+let WORDS = [...BASE_WORDS, ...BANK, ...loadCustomWords()];
+function refreshWords(){ WORDS = [...BASE_WORDS, ...BANK, ...loadCustomWords()]; }
+/* ================= 兴趣包:旅行日语实用短句(整句拼写,词引擎直接复用) ================= */
+const SENTENCES = [
+  {kanji:'问路 · 〜在哪里',kana:'すみません えき は どこ ですか',romaji:'sumimasen eki wa doko desuka',d:2},
+  {kanji:'点餐 · 请给我这个',kana:'これ を ください',romaji:'kore wo kudasai',d:1},
+  {kanji:'购物 · 多少钱',kana:'いくら ですか',romaji:'ikura desuka',d:2},
+  {kanji:'礼貌 · 谢谢您',kana:'ありがとうございます',romaji:'arigatou gozaimasu',d:2},
+  {kanji:'找洗手间',kana:'トイレ は どこ ですか',romaji:'toire wa doko desuka',d:2},
+  {kanji:'结账 · 结账多少钱',kana:'おかいけい を おねがいします',romaji:'okaikei wo onegaishimasu',d:3},
+];
+
+/* ================= 五十音:全 104 音(清音46 + 浊音20 + 半浊音5 + 拗音33) ================= */
+const KANA_GROUPS = [
+  {title:'清音(46)', chars:'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん', cols:5, size:1},
+  {title:'浊音(20)', chars:'がぎぐげござじずぜぞだぢづでどばびぶべぼ', cols:5, size:1},
+  {title:'半浊音(5)', chars:'ぱぴぷぺぽ', cols:5, size:1},
+  {title:'拗音(33)', chars:'きゃきゅきょしゃしゅしょちゃちゅちょにゃにゅにょひゃひゅひょみゃみゅみょりゃりゅりょぎゃぎゅぎょじゃじゅじょびゃびゅびょぴゃぴゅぴょ', cols:3, size:2},
+];
+
+/* ================= 罗马字→假名转换(已通过 31 个用例验证) ================= */
+const R_MAP = {
+  kya:'きゃ',kyu:'きゅ',kyo:'きょ',sha:'しゃ',shu:'しゅ',sho:'しょ',
+  sya:'しゃ',syu:'しゅ',syo:'しょ',cha:'ちゃ',chu:'ちゅ',cho:'ちょ',
+  cya:'ちゃ',cyu:'ちゅ',cyo:'ちょ',nya:'にゃ',nyu:'にゅ',nyo:'にょ',
+  hya:'ひゃ',hyu:'ひゅ',hyo:'ひょ',mya:'みゃ',myu:'みゅ',myo:'みょ',
+  rya:'りゃ',ryu:'りゅ',ryo:'りょ',gya:'ぎゃ',gyu:'ぎゅ',gyo:'ぎょ',
+  ja:'じゃ',ju:'じゅ',jo:'じょ',jya:'じゃ',jyu:'じゅ',jyo:'じょ',
+  zya:'じゃ',zyu:'じゅ',zyo:'じょ',bya:'びゃ',byu:'びゅ',byo:'びょ',
+  pya:'ぴゃ',pyu:'ぴゅ',pyo:'ぴょ',fya:'ふぁ',fyu:'ふゅ',fyo:'ふょ',
+  tsa:'つぁ',tsi:'つぃ',tse:'つぇ',tso:'つぉ',
+  ka:'か',ki:'き',ku:'く',ke:'け',ko:'こ',sa:'さ',shi:'し',si:'し',
+  su:'す',se:'せ',so:'そ',ta:'た',chi:'ち',ti:'ち',tsu:'つ',tu:'つ',
+  te:'て',to:'と',na:'な',ni:'に',nu:'ぬ',ne:'ね',no:'の',ha:'は',
+  hi:'ひ',fu:'ふ',hu:'ふ',he:'へ',ho:'ほ',ma:'ま',mi:'み',mu:'む',
+  me:'め',mo:'も',ya:'や',yu:'ゆ',yo:'よ',ra:'ら',ri:'り',ru:'る',
+  re:'れ',ro:'ろ',wa:'わ',wo:'を',ga:'が',gi:'ぎ',gu:'ぐ',ge:'げ',
+  go:'ご',za:'ざ',ji:'じ',zi:'じ',zu:'ず',ze:'ぜ',zo:'ぞ',da:'だ',
+  di:'ぢ',du:'づ',de:'で',do:'ど',ba:'ば',bi:'び',bu:'ぶ',be:'べ',
+  bo:'ぼ',pa:'ぱ',pi:'ぴ',pu:'ぷ',pe:'ぺ',po:'ぽ',
+  a:'あ',i:'い',u:'う',e:'え',o:'お',
+};
+function toKana(input){
+  const s = input.toLowerCase();
+  let out = '', i = 0, lastN = false;
+  while (i < s.length){
+    let matched = false;
+    for (let len = 3; len >= 1; len--){
+      const seg = s.substr(i, len);
+      if (R_MAP[seg]){ out += R_MAP[seg]; i += len; matched = true; lastN = false; break; }
+    }
+    if (matched) continue;
+    const c = s[i], d = s[i+1];
+    // 促音:辅音后紧跟另一辅音,且二者不构成合法声母(kk/tch/pp 等;ts/sh 不算)
+    if ('kstphbgrzcdmfj'.includes(c) && d && 'kstphbgrzcdmfj'.includes(d) && !ONSET.has(c + d)){
+      out += 'っ'; i += 1; lastN = false; continue;
+    }
+    if (c === 'n' && !(d && 'aiueo'.includes(d)) && d !== 'y'){
+      if (!(lastN && !(d && 'kstphbgrzdm'.includes(d)))){ out += 'ん'; }
+      lastN = true; i += 1; continue;
+    }
+    out += c; i += 1; lastN = false;
+  }
+  return out;
+}
+function kataToHira(s){ // 片假名→平假名(仅用于比对;显示保持原样)
+  let out = '';
+  for (const ch of s){
+    const c = ch.codePointAt(0);
+    out += (c >= 0x30A1 && c <= 0x30F6) ? String.fromCharCode(c - 0x60) : ch;
+  }
+  return out;
+}
+// 合法双辅音声母:这类组合不产生促音(如 ts→つ、sh→し)
+const ONSET = new Set(['ky','sh','sy','ch','cy','ts','fy','ny','hy','my','ry','gy','jy','zy','by','py']);
+function checkProgress(raw, target){
+  // 片假名归一化 + 长音「ー」从比对中剔除(コーヒー 可打 kohi 通过,原型从宽)
+  target = kataToHira(target).replace(/ー/g, '');
+  const conv = toKana(raw);
+  const solid = kataToHira(conv.replace(/[a-z\- ]+$/i, '')).replace(/ー/g, '');
+  if (solid === target) return { status:'done', solid };
+  let ok = 0;
+  const max = Math.min(solid.length, target.length);
+  while (ok < max && solid[ok] === target[ok]) ok++;
+  if (ok === solid.length && solid.length <= target.length) return { status:'ok', solid, ok };
+  return { status:'wrong', solid, ok };
+}
+
+/* ================= 入门定位:单元制 + SRS 复习调度(无每日推送,进度由用户掌控) ================= */
+const DIFF_LABEL = {1:'入门词',2:'基础词',3:'进阶词'};
+const UNIT_SIZE = 20;
+function buildUnits(){
+  // 全部词(内置 + 导入)按难度分篇,篇内按顺序切分为单元;单元名按篇章内编号(与单元选择页的组标签一致)
+  const units = [];
+  for (const d of [1, 2, 3]){
+    const ws = WORDS.filter(w => w.d === d).sort((a,b) => a.order - b.order);
+    let n = 0;
+    for (let i = 0; i < ws.length; i += UNIT_SIZE){
+      n++;
+      units.push({ d, name: '单元 ' + n, words: ws.slice(i, i + UNIT_SIZE) });
+    }
+  }
+  return units;
+}
+function wstate(){ try{ return JSON.parse(localStorage.getItem('kf_words'))||{} }catch(e){ return {} } }
+function wsave(m){ localStorage.setItem('kf_words', JSON.stringify(m)) }
+function offsetMs(){ return +(localStorage.getItem('kf_offset')||0) }
+function now(){ return Date.now() + offsetMs() }
+function knownCount(){ const m = wstate(); return WORDS.filter(w => m[w.id]).length; }
+function dueWords(){
+  const m = wstate(); const out = [];
+  WORDS.forEach(w => { const s = m[w.id]; if(s && s.due <= now()) out.push(w); });
+  return out;
+}
+function recordWord(w, ok){ // SM-2 简化版:前两步固定短间隔,之后按 ease 动态拉长;出错降级
+  const m = wstate();
+  const s = m[w.id] || { step:0, ease:2.5, due:now(), wrong:0 };
+  s.wrong = (s.wrong || 0) + (ok ? 0 : 1);
+  if (ok){
+    if (s.step < 2) s.step += 1;
+    else s.int = Math.max(1, Math.round((s.int || 1) * s.ease));
+    s.ease = Math.min(2.8, (s.ease || 2.5) + 0.05);
+  } else {
+    s.step = 0; s.int = 0;
+    s.ease = Math.max(1.3, (s.ease || 2.5) - 0.2);
+  }
+  s.due = now() + (s.step === 0 ? 2*60e3 : s.step === 1 ? 10*60e3 : (s.int || 1)*86400e3);
+  m[w.id] = s; wsave(m);
+}
+function advanceDay(){ localStorage.setItem('kf_offset', offsetMs()+26*3600e3); renderHome(); renderStats(); }
+
+/* ================= 导航 ================= */
+const $ = id => document.getElementById(id);
+function switchTab(tab){
+  document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab || (tab === 'units' && b.dataset.tab === 'home')));
+  $('view-' + tab).classList.add('active');
+  document.body.classList.remove('in-practice');
+  if (tab === 'me') renderStats();
+  if (tab === 'home') renderHome();
+  if (tab === 'units') renderUnits();
+  window.scrollTo(0,0);
+}
+function showView(name){
+  document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
+  $('view-' + name).classList.add('active');
+  // 练习类视图(打字/测验/学习卡/文本)隐藏底栏;tab 视图误调用时也能恢复正常底栏
+  document.body.classList.toggle('in-practice', !['home', 'kana', 'me'].includes(name));
+  window.scrollTo(0,0);
+}
+function exitPractice(){
+  $('overlay').classList.remove('show');
+  document.body.classList.remove('in-practice');
+  switchTab('home');
+}
+
+/* ================= 打字练习(方案 A) ================= */
+const T = { list:[], idx:0, correctChars:0, errors:0, startTime:null, flow:false, onDone:null, pillText:null, dictation:false, wrongStreak:0, stage:1 };
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function startType(){
+  startFree(shuffle([...WORDS]).slice(0, 10), null);
+}
+function startPack(){
+  startFree(shuffle([...SENTENCES]).slice(0, 3), '旅行短句');
+}
+function startFree(list, pillText, opts){
+  opts = opts || {};
+  T.list = list;
+  T.idx = 0; T.correctChars = 0; T.errors = 0; T.startTime = null;
+  T.pillText = pillText;
+  T.stage = 1;
+  T.dictation = !!opts.dictation;
+  T.flow = false; T.onDone = null;
+  showView('type');
+  renderTypeWord();
+}
+function startDictation(){
+  startFree(shuffle([...WORDS]).slice(0, 10), '听写', {dictation:true});
+}
+function startKanaDrill(all){
+  const groups = all ? KANA_GROUPS : KANA_GROUPS.filter(g => g.title.includes('清音'));
+  const chars = [];
+  groups.forEach(g => { for (let i = 0; i < g.chars.length; i += g.size) chars.push(g.chars.substr(i, g.size)); });
+  const list = shuffle(chars).slice(0, 10).map(k => ({kanji:k, kana:k, romaji:kanaToRomaji(k), d:1}));
+  startFree(list, all ? '全音打字' : '清音打字');
+}
+function replayDict(){
+  const w = T.list[T.idx];
+  if (w) speak(w.kana);
+}
+function hintRomaji(w, idx){ // 提示用:带上下文的单假名读音(促音/拗音特殊处理)
+  const ch = w.kana[idx];
+  if (ch === 'っ'){
+    const nxt = w.kana[idx + 1] ? kanaToRomaji(w.kana[idx + 1]) : '';
+    return nxt ? '促音(双写 ' + nxt[0] + ')' : '促音(双写下一个辅音)';
+  }
+  let r = kanaToRomaji(ch);
+  if (!r && idx > 0) r = kanaToRomaji(w.kana[idx - 1] + ch); // 拗音第二字(ゃゅょ),与前一假名合读
+  return r || '?';
+}
+function showHint(){ // 连错辅助:只提示出错位置假名的读音,不整体替换答案,不锁定输入
+  const inp = $('t-input');
+  if (inp.disabled) return;
+  const w = T.list[T.idx];
+  const st = checkProgress(inp.value, w.kana);
+  const idx = Math.min(st.ok, w.kana.length - 1);
+  const ch = w.kana[idx];
+  const r = hintRomaji(w, idx);
+  $('t-sub').innerHTML = '提示:第 ' + (idx + 1) + ' 个假名是 <b style="color:var(--accent)">' + ch + '</b>(罗马字 ' + r + '),继续输入试试';
+  speak(ch);
+  $('t-skip').style.display = 'none';
+  $('t-choose').style.display = 'flex';
+}
+function revealAnswer(msg){ // 手动「不会」:整体显示答案,停在本题等待重试/下一个
+  const inp = $('t-input');
+  if (inp.disabled) return;
+  const w = T.list[T.idx];
+  T.errors += 1;
+  updateLiveStats();
+  inp.value = w.romaji;
+  inp.disabled = true;
+  inp.classList.remove('bad','shake');
+  renderTarget(w.romaji);
+  speak(w.kana);
+  $('t-sub').textContent = msg || '已显示答案';
+  $('t-skip').style.display = 'none';
+  $('t-choose').style.display = 'flex';
+}
+function giveUpWord(){ return revealAnswer('不会?已显示答案,可重试或进入下一题'); }
+function retryWord(){ // 清空重打本题
+  const inp = $('t-input');
+  inp.value = '';
+  inp.disabled = false;
+  inp.className = 'type-input';
+  T.wrongStreak = 0; T.lastWrongAt = 0; // 重试重新计数
+  $('t-choose').style.display = 'none';
+  $('t-skip').style.display = (!T.flow && T.pillText && T.pillText.includes('打字')) ? '' : 'none';
+  $('t-sub').textContent = T.dictation ? '听写:听发音,直接打出假名(可点喇叭重听)' : '请用罗马字打出它的假名写法';
+  renderTarget('');
+  inp.focus();
+}
+function nextWord(){ // 放弃本题,进入下一题(流程模式按错误计入 SRS)
+  $('t-choose').style.display = 'none';
+  $('t-skip').style.display = '';
+  const inp = $('t-input');
+  inp.disabled = false;
+  if (T.flow){
+    const cb = T.onDone; T.onDone = null; cb && cb(true);
+    return;
+  }
+  T.idx++;
+  if (T.idx >= T.list.length) finishType();
+  else renderTypeWord();
+}
+function drillWrong(){
+  const m = wstate();
+  const wrong = WORDS.filter(w => m[w.id] && m[w.id].wrong > 0);
+  if (!wrong.length) return;
+  startFree(shuffle(wrong).slice(0, 10), '错词专练');
+}
+function startSpellWord(w, onDone){
+  T.flow = true; T.onDone = onDone; T.stage = 1;
+  T.list = [w]; T.idx = 0; T.correctChars = 0; T.errors = 0; T.startTime = null;
+  showView('type');
+  renderTypeWord();
+}
+function renderTypeWord(){
+  const w = T.list[T.idx];
+  const stageTxt = (T.stage === 2 && !T.dictation) ? '第2遍 · 看汉字默写' : '第1遍 · 看假名';
+  $('t-count').innerHTML = T.flow ? '拼写巩固 · ' + stageTxt
+    : (T.pillText ? T.pillText + ' <b>' + (T.idx + 1) + '</b>/' + T.list.length + ' · ' + stageTxt
+                  : '第 <b id="t-idx">1</b>/10 题 · ' + stageTxt);
+  if(!T.flow && !T.pillText) $('t-idx').textContent = T.idx + 1;
+  $('t-word').textContent = w.kanji;
+  const inp = $('t-input');
+  inp.value = ''; inp.className = 'type-input';
+  T.wrongStreak = 0; T.lastWrongAt = 0; // 新词(或新阶段)重新计数
+  $('t-word').style.display = T.dictation ? 'none' : '';
+  $('t-dict-btn').style.display = T.dictation ? '' : 'none';
+  $('t-sub').textContent = T.dictation ? '听写:听发音,直接打出假名(可点喇叭重听)'
+    : (T.stage === 2 ? '第2遍:只看上面汉字,默写假名' : '请用罗马字打出它的假名写法');
+  // 「不会」按钮:仅五十音打字关卡显示
+  $('t-skip').style.display = (!T.flow && T.pillText && T.pillText.includes('打字')) ? '' : 'none';
+  $('t-choose').style.display = 'none';
+  renderTarget('');
+  $('t-prog').style.width = ((T.idx) / 10 * 100) + '%';
+  if (T.dictation) speak(w.kana);
+  requestAnimationFrame(() => { inp.focus(); inp.click(); });
+}
+function renderTarget(raw){
+  const w = T.list[T.idx];
+  const st = checkProgress(raw, w.kana);
+  const line = $('t-target');
+  line.innerHTML = '';
+  [...w.kana].forEach((ch, i) => {
+    const s = document.createElement('span');
+    s.className = 'c'; s.textContent = ch;
+    if (T.stage === 2 && i >= st.ok) s.textContent = '□'; // 第2遍默写:未打到的假名显示 □
+    if (st.status !== 'wrong' && i < st.ok) s.classList.add('done');
+    if (i === st.ok) s.classList.add('cur');
+    if (st.status === 'wrong' && i === st.ok) s.classList.add('err');
+    line.appendChild(s);
+  });
+  return st;
+}
+$('t-input').addEventListener('input', e => {
+  if (e.target.disabled) return; // 防重入:完成后到跳题前的输入事件一律忽略
+  const judge = (T.judge = (T.judge || 0) + 1); // 判定令牌:新输入会使未确认的旧判定失效
+  const inp = e.target;
+  const w = T.list[T.idx];
+  if (!T.startTime) T.startTime = Date.now();
+  const raw = e.target.value;
+  const st = renderTarget(raw);
+  if (st.status === 'wrong'){
+    // 延迟 260ms 确认:用户可能正在输入促音等中间状态(如 gak→gakkou),不即时闪红
+    setTimeout(() => {
+      if (T.judge !== judge || inp.disabled) return;               // 已有新输入或已跳题
+      const st2 = checkProgress(inp.value, w.kana);
+      if (st2.status !== 'wrong') return;                          // 继续输入后已自行恢复
+      T.errors++;
+      const t = Date.now();
+      // 冷却 1.2s:间隔不足视为同一次尝试;时间戳仅在计数时更新,避免长尝试内部互相顶掉计数
+      if (!T.lastWrongAt || t - T.lastWrongAt > 1200){
+        T.wrongStreak = (T.wrongStreak || 0) + 1;
+        T.lastWrongAt = t;
+      }
+      inp.classList.add('bad','shake');
+      setTimeout(() => inp.classList.remove('shake'), 320);
+      updateLiveStats();
+      if (T.wrongStreak >= 3){ showHint(); }
+    }, 260);
+  } else {
+    // ok/done 不清零连错计数:答错几轮后打对开头字母,不代表之前的失败没发生;换词/重试才重置
+    e.target.classList.remove('bad');
+    e.target.classList.toggle('good', st.ok > 0);
+  }
+  updateLiveStats();
+  if (st.status === 'done'){
+    T.correctChars += w.kana.length;
+    updateLiveStats();
+    e.target.classList.add('good');
+    e.target.disabled = true;
+    setTimeout(() => {
+      e.target.disabled = false;
+      const twoStage = !T.dictation && w.kanji !== w.kana; // 假名词条(如五十音关卡)无需第二遍
+      if (twoStage && T.stage === 1){
+        T.stage = 2;           // 同一个词紧接着默写一遍
+        renderTypeWord();
+        return;
+      }
+      T.stage = 1;
+      if (T.flow){ const cb = T.onDone; const hadErr = T.errors > 0; T.onDone = null; cb && cb(hadErr); return; }
+      T.idx++;
+      if (T.idx >= T.list.length) finishType();
+      else renderTypeWord();
+    }, 280);
+  }
+});
+function updateLiveStats(){
+  $('t-acc').textContent = T.correctChars + T.errors > 0
+    ? Math.round(T.correctChars / (T.correctChars + T.errors) * 100) : 100;
+}
+function finishType(){
+  const acc = T.correctChars + T.errors > 0 ? Math.round(T.correctChars / (T.correctChars + T.errors) * 100) : 100;
+  saveStats({ chars:T.correctChars, errors:T.errors });
+  showResult('打字组完成', '准确率 ' + acc + '%', [
+    ['准确率', acc + '%'], ['打对假名', T.correctChars + ' 个'],
+  ], () => startType());
+}
+
+/* ================= 读音选择(方案 C) ================= */
+const Q = { list:[], idx:0, score:0, locked:false, flow:false, onDone:null };
+function startQuiz(){
+  Q.list = shuffle([...WORDS]).slice(0, 8);
+  Q.idx = 0; Q.score = 0; Q.flow = false; Q.onDone = null;
+  showView('quiz');
+  renderQuiz();
+}
+function startQuizDrill(){ // 独立读音选择:优先考学过的词,学得少时退回入门词
+  const m = wstate();
+  const learned = WORDS.filter(w => m[w.id]);
+  const pool = learned.length >= 4 ? learned : WORDS.filter(w => w.d === 1);
+  Q.list = shuffle([...pool]).slice(0, 10);
+  Q.idx = 0; Q.score = 0; Q.flow = false; Q.onDone = null;
+  showView('quiz');
+  renderQuiz();
+}
+function pickDistractors(w){ // 干扰项分级:同难度、首音相同、读音等长相近的优先,末位加随机打散
+  const scored = [];
+  for (const x of WORDS){
+    if (x === w || x.kana === w.kana) continue;
+    let s = Math.random() * 0.9;
+    if (x.d === w.d) s += 2;
+    if (x.kana[0] === w.kana[0]) s += 2;
+    if (Math.abs(x.kana.length - w.kana.length) <= 1) s += 1;
+    if (/[\u30FCーぁぃぅぇぉゃゅょっ]/.test(w.kana) && /[\u30FCーぁぃぅぇぉゃゅょっ]/.test(x.kana)) s += 1;
+    scored.push({ x, s });
+  }
+  scored.sort((a, b) => b.s - a.s);
+  return scored.slice(0, 3).map(o => o.x.kana);
+}
+function startChoiceWord(w, onDone){
+  Q.flow = true; Q.onDone = onDone;
+  Q.list = [w]; Q.idx = 0; Q.score = 0;
+  showView('quiz');
+  renderQuiz();
+}
+function renderQuiz(){
+  Q.locked = false;
+  const w = Q.list[Q.idx];
+  window._qWord = w;
+  $('q-idx').textContent = Q.idx + 1;
+  $('q-score').textContent = Q.score;
+  $('q-word').textContent = w.kanji;
+  const distract = pickDistractors(w);
+  const opts = shuffle([w.kana, ...distract]);
+  const box = $('q-opts');
+  box.innerHTML = '';
+  opts.forEach(k => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.textContent = k; b.dataset.k = k;
+    b.onclick = () => pickQuiz(b, k, w);
+    box.appendChild(b);
+  });
+}
+function pickQuiz(btn, chosen, w){
+  if (Q.locked) return;
+  Q.locked = true;
+  const right = chosen === w.kana;
+  if (right){ Q.score++; btn.classList.add('right'); }
+  else { btn.classList.add('wrong');
+    document.querySelectorAll('.opt').forEach(b => { if (b.dataset.k === w.kana) b.classList.add('right'); });
+  }
+  // 揭示所有选项的中文释义(答错能对照,答对也能顺便认识干扰项)
+  document.querySelectorAll('.opt').forEach(b => {
+    b.disabled = true;
+    const x = WORDS.find(v => v.kana === b.dataset.k && anyGloss(v));
+    if (x) b.insertAdjacentHTML('beforeend', '<span class="opt-zh">' + anyGloss(x) + '</span>');
+  });
+  $('q-score').textContent = Q.score;
+  speak(w.kana);
+  saveStats({ chars:0, errors: right ? 0 : 1 });
+  // 不自动跳转:用户点「下一题」继续(答错可先重做)
+  const bar = document.createElement('div');
+  bar.className = 'next-bar';
+  if (!right){
+    const retry = document.createElement('button');
+    retry.className = 'ghost-btn';
+    retry.style.marginTop = '0';
+    retry.textContent = '重做这题';
+    retry.onclick = () => retryQuiz(w);
+    bar.appendChild(retry);
+  }
+  const next = document.createElement('button');
+  next.className = 'primary-btn';
+  next.style.marginTop = '0';
+  next.textContent = '下一题 →';
+  next.onclick = () => quizNext(right);
+  bar.appendChild(next);
+  $('q-opts').appendChild(bar);
+}
+function quizNext(right){
+  if (Q.flow){ const cb = Q.onDone; Q.onDone = null; cb && cb(right); return; }
+  Q.idx++;
+  if (Q.idx >= Q.list.length) finishQuiz();
+  else renderQuiz();
+}
+function retryQuiz(w){ // 重做:清掉判定与释义,重选一次(首次结果已记录,不再重复计分)
+  Q.locked = false;
+  document.querySelectorAll('#q-opts .opt').forEach(b => {
+    b.disabled = false; b.classList.remove('right', 'wrong');
+    const zh = b.querySelector('.opt-zh'); if (zh) zh.remove();
+  });
+  const bar = document.querySelector('#q-opts .next-bar'); if (bar) bar.remove();
+  speak(w.kana);
+}
+function finishQuiz(){
+  const n = Q.list.length;
+  showResult('读音选择完成', Q.score + '/' + n + ' 题', [
+    ['答对', Q.score + ' 题'], ['正确率', Math.round(Q.score / n * 100) + '%'],
+  ], () => startQuiz());
+}
+
+/* ================= 单元学习与复习流程(用户掌控进度,无每日推送) ================= */
+const F = { queue:[], i:0, wrong:0, label:'', rerun:null };
+function startUnit(ui){
+  const u = buildUnits()[ui]; const m = wstate();
+  F.label = u.name; F.i = 0; F.wrong = 0;
+  F.rerun = () => startUnit(ui);
+  F.queue = [];
+  // 新词:学习卡(认一认 → 立刻拼写,拼写由 learnGoSpell 的回调衔接推进);
+  // 再整单元点选测试
+  u.words.filter(w => !m[w.id]).forEach(w => F.queue.push({type:'learn', w}));
+  u.words.forEach(w => F.queue.push({type:'choice', w}));
+  runNext();
+}
+function startReview(){
+  F.label = '复习'; F.i = 0; F.wrong = 0; F.rerun = startReview;
+  F.queue = [];
+  dueWords().forEach(w=>{ F.queue.push({type:'choice', w}); F.queue.push({type:'spell', w}); });
+  runNext();
+}
+function runNext(){
+  if(F.i >= F.queue.length) return finishFlow();
+  const it = F.queue[F.i++];
+  if(it.type === 'learn') showLearn(it.w);
+  else if(it.type === 'spell') startSpellWord(it.w, hadErr=>{ recordWord(it.w, !hadErr); if(hadErr) F.wrong++; runNext(); });
+  else startChoiceWord(it.w, right=>{ recordWord(it.w, right); if(!right) F.wrong++; runNext(); });
+}
+/* 学习卡词语组合:优先从词库找含同字的词,再用内置常用组合兜底 */
+const COMBOS = {
+  '犬':[{kanji:'子犬',kana:'こいぬ',romaji:'koinu',d:2},{kanji:'番犬',kana:'ばんけん',romaji:'banken',d:3}],
+  '猫':[{kanji:'子猫',kana:'こねこ',romaji:'koneko',d:2}],
+  '水':[{kanji:'水曜日',kana:'すいようび',romaji:'suiyoubi',d:3},{kanji:'香水',kana:'こうすい',romaji:'kousui',d:3}],
+  '山':[{kanji:'火山',kana:'かざん',romaji:'kazan',d:2},{kanji:'山道',kana:'やまみち',romaji:'yamamichi',d:2}],
+  '空':[{kanji:'空港',kana:'くうこう',romaji:'kuukou',d:3},{kanji:'空中',kana:'くうちゅう',romaji:'kuuchuu',d:3}],
+  '雨':[{kanji:'大雨',kana:'おおあめ',romaji:'ooame',d:2},{kanji:'梅雨',kana:'つゆ',romaji:'tsuyu',d:2}],
+  '花':[{kanji:'花見',kana:'はなみ',romaji:'hanami',d:2},{kanji:'生け花',kana:'いけばな',romaji:'ikebana',d:3}],
+  '月':[{kanji:'月曜日',kana:'げつようび',romaji:'getsuyoubi',d:3},{kanji:'毎月',kana:'まいつき',romaji:'maitsuki',d:3}],
+  '日':[{kanji:'日曜日',kana:'にちようび',romaji:'nichiyoubi',d:3},{kanji:'毎日',kana:'まいにち',romaji:'mainichi',d:2}],
+  '手':[{kanji:'手紙',kana:'てがみ',romaji:'tegami',d:2},{kanji:'上手',kana:'じょうず',romaji:'jouzu',d:3}],
+  '目':[{kanji:'目玉焼き',kana:'めだまやき',romaji:'medamayaki',d:3}],
+  '駅':[{kanji:'駅前',kana:'えきまえ',romaji:'ekimae',d:2}],
+  '電話':[{kanji:'電話番号',kana:'でんわばんごう',romaji:'denwabangou',d:3}],
+  '気':[{kanji:'天気',kana:'てんき',romaji:'tenki',d:2},{kanji:'元気',kana:'げんき',romaji:'genki',d:2}],
+  '椅子':[{kanji:'机',kana:'つくえ',romaji:'tsukue',d:2},{kanji:'窓',kana:'まど',romaji:'mado',d:2}],
+  '息子':[{kanji:'娘',kana:'むすめ',romaji:'musume',d:2},{kanji:'兄弟',kana:'きょうだい',romaji:'kyoudai',d:2}],
+  '帽子':[{kanji:'服',kana:'ふく',romaji:'fuku',d:2},{kanji:'靴',kana:'くつ',romaji:'kutsu',d:2}],
+  '館':[{kanji:'図書館',kana:'としょかん',romaji:'toshokan',d:3},{kanji:'美術館',kana:'びじゅつかん',romaji:'bijutsukan',d:3}],
+};
+function comboList(w){
+  const chars = [...w.kanji].filter(c => /[\u4e00-\u9faf]/.test(c));
+  const stem = chars.length > 1 ? chars.slice(0, -1) : chars; // 末尾字多为后缀(如「椅子」的「子」),只用词干匹配,避免无关组合
+  const seen = new Set([w.kanji]);
+  const out = [];
+  for (const x of WORDS){ // 词库内含同字根的词(真实例词,含读音)
+    if (seen.has(x.kanji)) continue;
+    if (stem.some(c => x.kanji.includes(c))){ out.push(x); seen.add(x.kanji); }
+    if (out.length >= 8) break;
+  }
+  for (const kanji of [w.kanji, ...(chars.length ? chars : [])]){ // 内置组合兜底(先整词后单字)
+    for (const c of (COMBOS[kanji] || [])){
+      if (out.length >= 8) break;
+      if (!seen.has(c.kanji)){ out.push(c); seen.add(c.kanji); }
+    }
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+/* 例句:常用词内置真实例句(附中文翻译),其余用安全模板自动生成(点击整句朗读) */
+const EXAMPLES = {
+  '犬':[{jp:'この犬はかわいいです',kana:'この いぬ は かわいい です',zh:'这只狗很可爱'}],
+  '猫':[{jp:'猫が寝ています',kana:'ねこ が ねて います',zh:'猫在睡觉'}],
+  '水':[{jp:'水を飲みます',kana:'みず を のみます',zh:'喝水'}],
+  '雨':[{jp:'雨が降っています',kana:'あめ が ふって います',zh:'正在下雨'}],
+  '学校':[{jp:'学校へ行きます',kana:'がっこう へ いきます',zh:'去学校'}],
+  '元気':[{jp:'元気ですか',kana:'げんき です か',zh:'你好吗'}],
+  '電話':[{jp:'電話をかけてもいいですか',kana:'でんわ を かけて も いい です か',zh:'可以打个电话吗'}],
+  '日本':[{jp:'日本から来ました',kana:'にほん から きました',zh:'我来自日本'}],
+  'ご飯':[{jp:'ご飯を食べましょう',kana:'ごはん を たべましょう',zh:'一起吃饭吧'}],
+  '車':[{jp:'車を買いました',kana:'くるま を かいました',zh:'买了车'}],
+  '花':[{jp:'花がきれいです',kana:'はな が きれい です',zh:'花很漂亮'}],
+  '時間':[{jp:'時間がありません',kana:'じかん が ありません',zh:'没有时间'}],
+  '仕事':[{jp:'仕事は九時から始まります',kana:'しごと は くじ から はじまります',zh:'工作从九点开始'}],
+  '友達':[{jp:'友達と映画を見ます',kana:'ともだち と えいが を みます',zh:'和朋友看电影'}],
+  '大学':[{jp:'兄は大学の学生です',kana:'あに は だいがく の がくせい です',zh:'哥哥是大学生'}],
+  '駅':[{jp:'駅で友達と会いました',kana:'えき で ともだち と あいました',zh:'在车站和朋友见了面'}],
+  '天気':[{jp:'明日はいい天気です',kana:'あした は いい てんき です',zh:'明天是个好天气'}],
+  '病院':[{jp:'病院へ行かなければなりません',kana:'びょういん へ いかなければ なりません',zh:'必须去医院'}],
+  '薬':[{jp:'薬を飲みましたか',kana:'くすり を のみました か',zh:'吃药了吗'}],
+  '図書館':[{jp:'図書館で本を読みます',kana:'としょかん で ほん を よみます',zh:'在图书馆看书'}],
+  '旅行':[{jp:'夏休みに旅行に行きます',kana:'なつやすみ に りょこう に いきます',zh:'暑假去旅行'}],
+  '勉強':[{jp:'毎日日本語を勉強しています',kana:'まいにち にほんご を べんきょう して います',zh:'每天都在学日语'}],
+  '部屋':[{jp:'この部屋はきれいですね',kana:'この へや は きれい です ね',zh:'这个房间很干净呢'}],
+  '魚':[{jp:'魚を食べたいです',kana:'さかな を たべたい です',zh:'想吃鱼'}],
+  '野菜':[{jp:'野菜を買ってきました',kana:'やさい を かって きました',zh:'买了蔬菜回来'}],
+  '名前':[{jp:'お名前は何ですか',kana:'お なまえ は なん です か',zh:'你叫什么名字'}],
+  '空':[{jp:'空が急に暗くなりました',kana:'そら が きゅうに くらい なりました',zh:'天空突然暗了下来'}],
+  '山':[{jp:'山に登りたいです',kana:'やま に のぼりたい です',zh:'想去爬山'}],
+  '車':[{jp:'駅まで車で行きましょう',kana:'えき まで くるま で いきましょう',zh:'坐车到车站去吧'}],
+  '人':[{jp:'あの人は先生です',kana:'あの ひと は せんせい です',zh:'那个人是老师'}],
+  '年':[{jp:'今年はあと二か月です',kana:'ことし は あと にかげつ です',zh:'今年还剩两个月'}],
+  '分':[{jp:'十五分待ってください',kana:'じゅうごふん まって ください',zh:'请等十五分钟'}],
+  '半':[{jp:'今、九時半です',kana:'いま くじはんです',zh:'现在是九点半'}],
+  '今':[{jp:'今、何時ですか',kana:'いま なんじ ですか',zh:'现在几点?'}],
+  '何':[{jp:'これは何ですか',kana:'これは なんですか',zh:'这是什么?'}],
+  '上':[{jp:'机の上に本があります',kana:'つくえの うえに ほんが あります',zh:'桌子上有一本书'}],
+  '下':[{jp:'窓の下に猫がいます',kana:'まどの したに ねこが います',zh:'窗户下面有一只猫'}],
+  '中':[{jp:'かばんの中に何もありません',kana:'かばんの なかに なにも ありません',zh:'包里什么都没有'}],
+  '外':[{jp:'外は雨です',kana:'そと は あめ です',zh:'外面在下雨'}],
+  '東':[{jp:'東京は日本の東にあります',kana:'とうきょう は にほんの ひがしに あります',zh:'东京位于日本的东边'}],
+  '口':[{jp:'口を開けてください',kana:'くちを あけて ください',zh:'请张开嘴'}],
+  '耳':[{jp:'うさぎの耳は長いです',kana:'うさぎの みみは ながい です',zh:'兔子的耳朵很长'}],
+  '目':[{jp:'目が大きいですね',kana:'めが おおきい ですね',zh:'眼睛真大啊'}],
+  '朝':[{jp:'毎朝六時に起きます',kana:'まいあさ ろくじに おきます',zh:'每天早上六点起床'}],
+  '昼':[{jp:'昼ご飯を食べましょう',kana:'ひるごはん を たべましょう',zh:'吃午饭吧'}],
+  '晩':[{jp:'今晩、暇ですか',kana:'こんばん ひま ですか',zh:'今晚有空吗?'}],
+  '毎日':[{jp:'毎日、公園を散歩します',kana:'まいにち こうえんを さんぽします',zh:'每天在公园散步'}],
+  '行く':[{jp:'明日、学校へ行きます',kana:'あした がっこう へ いきます',zh:'明天去学校'}],
+  '来る':[{jp:'友達が家に来ます',kana:'ともだちが いえに きます',zh:'朋友要来我家'}],
+  '帰る':[{jp:'毎日七時に家へ帰ります',kana:'まいにち しちじに いえへ かえります',zh:'每天七点回家'}],
+  '食べる':[{jp:'朝ご飯を食べました',kana:'あさごはんを たべました',zh:'吃过早饭了'}],
+  '飲む':[{jp:'コーヒーを飲みます',kana:'コーヒーを のみます',zh:'喝咖啡'}],
+  '見る':[{jp:'映画を見たいです',kana:'えいがを みたい です',zh:'想看电影'}],
+  '会う':[{jp:'駅で友達に会いました',kana:'えきで ともだちに あいました',zh:'在车站遇到了朋友'}],
+  '言う':[{jp:'もう一度言ってください',kana:'もういちど いって ください',zh:'请再说一遍'}],
+  '話す':[{jp:'先生と話しました',kana:'せんせいと はなしました',zh:'和老师谈了谈'}],
+  '書く':[{jp:'名前を書いてください',kana:'なまえを かいて ください',zh:'请写下名字'}],
+  '買う':[{jp:'本を買いました',kana:'ほんを かいました',zh:'买了书'}],
+  '作る':[{jp:'ケーキを作ります',kana:'ケーキを つくります',zh:'做蛋糕'}],
+  '立つ':[{jp:'立ってください',kana:'たって ください',zh:'请站起来'}],
+  '座る':[{jp:'ここに座ってください',kana:'ここに すわって ください',zh:'请坐这里'}],
+  '入る':[{jp:'お風呂に入ります',kana:'おふろに はいります',zh:'泡澡'}],
+  '出る':[{jp:'八時に家を出ます',kana:'はちじに いえを でます',zh:'八点出门'}],
+  '起きる':[{jp:'今朝は早く起きました',kana:'けさは はやく おきました',zh:'今天早上起得早'}],
+  '寝る':[{jp:'十一時に寝ます',kana:'じゅういちじに ねます',zh:'十一点睡觉'}],
+  '会社':[{jp:'父は会社に行きます',kana:'ちちは かいしゃに いきます',zh:'爸爸去公司上班'}],
+  '教室':[{jp:'教室で日本語を習います',kana:'きょうしつで にほんごを ならいます',zh:'在教室学日语'}],
+  '先生':[{jp:'先生、おはようございます',kana:'せんせい おはようございます',zh:'老师早上好'}],
+  '学生':[{jp:'弟は学生です',kana:'おとうとは がくせい です',zh:'弟弟是学生'}],
+  '子供':[{jp:'子供が公園で遊んでいます',kana:'こどもが こうえんで あそんでいます',zh:'孩子在公园玩'}],
+  '男':[{jp:'あの男の人は誰ですか',kana:'あの おとこのひと は だれですか',zh:'那个男人是谁?'}],
+  '女':[{jp:'女の子が歌っています',kana:'おんなのこが うたっています',zh:'女孩在唱歌'}],
+  '家族':[{jp:'家族と相談します',kana:'かぞくと そうだんします',zh:'和家人商量'}],
+  '両親':[{jp:'両親は田舎に住んでいます',kana:'りょうしんは いなかに すんでいます',zh:'父母住在乡下'}],
+  '兄':[{jp:'兄は大学生です',kana:'あには だいがくせい です',zh:'哥哥是大学生'}],
+  '姉':[{jp:'姉は看護師です',kana:'あねは かんごし です',zh:'姐姐是护士'}],
+  '弟':[{jp:'弟はサッカーが好きです',kana:'おとうとは サッカーが すき です',zh:'弟弟喜欢足球'}],
+  '妹':[{jp:'妹は九歳です',kana:'いもうとは きゅうさい です',zh:'妹妹九岁'}],
+  '冷蔵庫':[{jp:'冷蔵庫にジュースがあります',kana:'れいぞうこに ジュースが あります',zh:'冰箱里有果汁'}],
+  '電気':[{jp:'電気をつけてください',kana:'でんきを つけて ください',zh:'请开灯'}],
+  '窓':[{jp:'窓を開けてもいいですか',kana:'まどを あけても いいですか',zh:'可以开窗吗?'}],
+  '机':[{jp:'本は机の上にあります',kana:'ほんは つくえの うえに あります',zh:'书在桌子上'}],
+  '写真':[{jp:'写真を撮ってもいいですか',kana:'しゃしんを とっても いいですか',zh:'可以拍照吗?'}],
+  '音楽':[{jp:'音楽を聞きます',kana:'おんがくを ききます',zh:'听音乐'}],
+  '映画':[{jp:'この映画は面白いです',kana:'この えいがは おもしろい です',zh:'这部电影很有意思'}],
+  '教科書':[{jp:'教科書を開いてください',kana:'きょうかしょを ひらいて ください',zh:'请打开课本'}],
+  '辞書':[{jp:'辞書を引きます',kana:'じしょを ひきます',zh:'查字典'}],
+  '新聞':[{jp:'朝、新聞を読みます',kana:'あさ しんぶんを よみます',zh:'早上读报纸'}],
+  '雑誌':[{jp:'雑誌を読んでいます',kana:'ざっしを よんでいます',zh:'正在看杂志'}],
+  '手紙':[{jp:'手紙を書きます',kana:'てがみを かきます',zh:'写信'}],
+  'プレゼント':[{jp:'プレゼントをありがとう',kana:'プレゼントを ありがとう',zh:'谢谢你的礼物'}],
+  '夏':[{jp:'夏は暑いです',kana:'なつは あつい です',zh:'夏天很热'}],
+  '冬':[{jp:'冬は寒いです',kana:'ふゆは さむい です',zh:'冬天很冷'}],
+  '春':[{jp:'春になって花が咲きました',kana:'はるに なって はなが さきました',zh:'春天来了,花开了'}],
+  '秋':[{jp:'秋は涼しいです',kana:'あきは すずしい です',zh:'秋天很凉爽'}],
+  '今年':[{jp:'今年、二十歳になります',kana:'ことし はたちに なります',zh:'今年满二十岁'}],
+  '去年':[{jp:'去年、日本へ行きました',kana:'きょねん にほんへ いきました',zh:'去年去了日本'}],
+  '痛い':[{jp:'頭が痛いです',kana:'あたまが いたい です',zh:'头疼'}],
+  '高い':[{jp:'この山は高いです',kana:'この やまは たかい です',zh:'这座山很高'}],
+  '安い':[{jp:'このりんごは安いです',kana:'この りんごは やすい です',zh:'这个苹果很便宜'}],
+  '新しい':[{jp:'新しい靴を買いました',kana:'あたらしい くつを かいました',zh:'买了新鞋'}],
+  '古い':[{jp:'古い町を歩きました',kana:'ふるい まちを あるきました',zh:'逛了古老的街道'}],
+  '大きい':[{jp:'大きい荷物ですね',kana:'おおきい にもつですね',zh:'好大的行李啊'}],
+  '小さい':[{jp:'小さい犬が好きです',kana:'ちいさい いぬが すき です',zh:'我喜欢小狗'}],
+  '長い':[{jp:'髪が長いですね',kana:'かみが ながいですね',zh:'头发真长啊'}],
+  '短い':[{jp:'短いメールを送りました',kana:'みじかい メールを おくりました',zh:'发了条简短的短信'}],
+  '近い':[{jp:'駅はここから近いです',kana:'えきは ここから ちかい です',zh:'车站离这里很近'}],
+  '遠い':[{jp:'空港は遠いですか',kana:'くうこうは とおい ですか',zh:'机场远吗?'}],
+  '早い':[{jp:'明日は早いので、もう寝ます',kana:'あしたは はやい ので もう ねます',zh:'明天要早起,先睡了'}],
+  '遅い':[{jp:'夜遅くまで勉強しました',kana:'よる おそくまで べんきょうしました',zh:'学习到深夜'}],
+  '静か':[{jp:'図書館は静かです',kana:'としょかんは しずか です',zh:'图书馆很安静'}],
+  '便利':[{jp:'この駅は便利です',kana:'この えきは べんり です',zh:'这个车站很方便'}],
+  '簡単':[{jp:'この問題は簡単です',kana:'この もんだいは かんたん です',zh:'这道题很简单'}],
+};
+function zhGloss(w){ // 从词条中文释义提取干净的词义(去注音/词性标记)
+  const g = (w.meaning || '').replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '')
+    .replace(/【[^】]*】/g, '').replace(/[⓪①②③④⑤⑥⑦⑧⑨]/g, '').trim();
+  return /[\u4e00-\u9fff]/.test(g) ? g : '';
+}
+function anyGloss(w){ // 释义兜底:无中文时退回清洗过的原文(可能是英文)
+  return zhGloss(w) || (w.meaning || '').replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '')
+    .replace(/【[^】]*】/g, '').replace(/[⓪①②③④⑤⑥⑦⑧⑨]/g, '').trim();
+}
+function stripGlossMarks(s){ // 清洗词典释义里的注音/词性标记(生词入库用)
+  return (s || '').replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '')
+    .replace(/【[^】]*】/g, '').replace(/[⓪①②③④⑤⑥⑦⑧⑨]/g, '').trim();
+}
+function makeExamples(w){
+  const out = [...(EXAMPLES[w.kanji] || [])];
+  const gloss = zhGloss(w);
+  const isVerb = /[うる]$/.test(w.kana); // 动词用专属句式,避免生成「これは会うです」这类病句(会う/食べる/する)
+  const tpl = isVerb
+    ? [{jp:w.kanji + 'ことが好きです', kana:w.kana + ' こと が 好き です', zh: gloss ? '喜欢' + gloss : ''}]
+    : [
+      {jp:'これは' + w.kanji + 'です', kana:'これ は ' + w.kana + ' です', zh: gloss ? '这是' + gloss : ''},
+      {jp:w.kanji + 'が好きです', kana:w.kana + ' が 好き です', zh: gloss ? '喜欢' + gloss : ''},
+    ];
+  for (const t of tpl){ if (out.length >= 2) break; if (!out.some(x => x.jp === t.jp)) out.push(t); }
+  return out.slice(0, 2);
+}
+function showLearn(w){
+  window._lWord = w;
+  $('l-word').textContent = w.kanji;
+  $('l-kana').textContent = w.kana + ' · ' + w.romaji;
+  $('l-meaning').textContent = w.meaning || '';
+  $('l-meaning').style.display = w.meaning ? '' : 'none';
+  const combos = comboList(w);
+  $('l-combos').innerHTML = combos.length
+    ? '<div style="font-size:11px;color:var(--sub);margin-bottom:2px">词语组合 · 点击听发音 · <u>下划线</u> = 同字异音</div>'
+      + combos.map(c => {
+        const same = [...w.kanji].find(ch => /[\u4e00-\u9faf]/.test(ch) && c.kanji.includes(ch));
+        const kk = same ? c.kanji.replace(same, '<u class="sk">' + same + '</u>') : c.kanji;
+        return '<span class="combo-chip" onclick="speak(\'' + c.kana + '\')">' + kk + '<i>' + c.kana + '</i></span>';
+      }).join('')
+    : '';
+  const exs = makeExamples(w);
+  $('l-examples').innerHTML = exs.length
+    ? '<div style="font-size:11px;color:var(--sub);margin-bottom:2px">例句 · 点击朗读</div>'
+      + exs.map(x => '<div class="example-block" onclick="speak(\'' + x.kana.replace(/ /g, '') + '\')"><div class="jp">' + x.jp + '</div><div class="kn">' + x.kana + '</div>'
+        + (x.zh ? '<div class="zh">' + x.zh + '</div>' : '') + '</div>').join('')
+    : '';
+  $('l-diff').textContent = DIFF_LABEL[w.d];
+  const learnItems = F.queue.filter(x => x.type === 'learn');
+  $('l-idx').textContent = learnItems.indexOf(F.queue[F.i - 1]) + 1;
+  $('l-total').textContent = learnItems.length;
+  showView('learn'); speak(w.kana);
+}
+function learnGoSpell(){
+  const w = window._lWord;
+  startSpellWord(w, hadErr=>{ recordWord(w, !hadErr); if(hadErr) F.wrong++; runNext(); });
+}
+function finishFlow(){
+  if(F.queue.length === 0) return exitPractice();
+  showResult(F.label + ' 完成!', F.wrong ? '出错 ' + F.wrong + ' 次,出错的词稍后会安排复习' : '全部正确,漂亮!', [
+    ['本组步骤', F.queue.length + ' 步'], ['出错', F.wrong + ' 次'], ['已学词数', knownCount() + '/' + WORDS.length],
+  ], F.rerun || (() => exitPractice()));
+}
+function renderHome(){
+  const due = dueWords();
+  const rc = $('review-card');
+  rc.style.display = due.length ? 'block' : 'none';
+  if(due.length) rc.innerHTML = '<h2>复习巩固</h2><p>' + due.length + ' 个词到了温习节点,有空可以过一遍(可随时退出)→</p>';
+  // 首页只放「学到哪了」:定位当前单元,完整列表在二级页(单元选择)
+  const cc = $('continue-card');
+  const units = buildUnits();
+  if (!units.length){ cc.style.display = 'none'; return; }
+  cc.style.display = 'block';
+  const u = currentUnit(units);
+  const ui = units.indexOf(u);
+  const m = wstate();
+  const learned = u.words.filter(w => m[w.id]).length;
+  const sec = {1:'入门篇', 2:'基础篇', 3:'进阶篇'}[u.d] || '';
+  const done = learned === u.words.length;
+  cc.innerHTML = done
+    ? '<h2>' + sec + ' · ' + u.name + ' 已完成 ✓</h2><p>点击开始下一个单元 →</p>'
+    : '<h2>继续学习:' + sec + ' · ' + u.name + '</h2><p>' + u.words[0].kanji + ' 等 ' + u.words.length + ' 词 · 已学 ' + learned + '/' + u.words.length + ',点击继续 →</p>';
+}
+function currentUnit(units){ // 学习进度定位:最后一个有进度的单元;已完成则指向下一单元
+  const m = wstate();
+  let last = null;
+  for (const u of units) if (u.words.some(w => m[w.id])) last = u;
+  if (!last) return units[0];
+  if (!last.words.every(w => m[w.id])) return last;
+  return units[units.indexOf(last) + 1] || last;
+}
+function continueUnit(){
+  const units = buildUnits();
+  if (!units.length) return;
+  startUnit(units.indexOf(currentUnit(units)));
+}
+function openUnits(){ switchTab('units'); }
+function renderUnits(){
+  const m = wstate();
+  const ul = $('unit-list'); ul.innerHTML = '';
+  const SEC = {1:'入门篇', 2:'基础篇', 3:'进阶篇'};
+  window._sectOpen = window._sectOpen || {1:true, 2:false, 3:false};
+  window._grpOpen = window._grpOpen || {};
+  const units = buildUnits();
+  const groups = {1:[], 2:[], 3:[]};
+  units.forEach((u, ui) => groups[u.d].push({u, ui}));
+  const GRP = 20; // 大篇章按每 20 个单元(400 词)分组,避免组行过多或卡片墙
+  for (const d of [1, 2, 3]){
+    if (!groups[d].length) continue;
+    const total = WORDS.filter(w => w.d === d).length;
+    const learnedAll = WORDS.filter(w => w.d === d && m[w.id]).length;
+    const h = document.createElement('div');
+    h.className = 'unit-sec' + (window._sectOpen[d] ? ' open' : '');
+    h.innerHTML = '<span>' + SEC[d] + ' · ' + total + ' 词 · 已学 ' + learnedAll + '</span><span class="arr">▶</span>';
+    h.onclick = () => {
+      window._sectOpen[d] = !window._sectOpen[d];
+      h.classList.toggle('open');
+      renderUnits();
+    };
+    ul.appendChild(h);
+    if (!window._sectOpen[d]) continue;
+    const chunks = [];
+    for (let i = 0; i < groups[d].length; i += GRP) chunks.push(groups[d].slice(i, i + GRP));
+    if (chunks.length === 1){ renderUnitGrid(ul, chunks[0], m); continue; }
+    chunks.forEach((chunk, gi) => {
+      const key = d + '-' + gi;
+      const from = gi * GRP + 1, to = gi * GRP + chunk.length; // 篇章内编号
+      const learnedG = chunk.reduce((n, x) => n + x.u.words.filter(w => m[w.id]).length, 0);
+      const totalG = chunk.reduce((n, x) => n + x.u.words.length, 0);
+      const gh = document.createElement('div');
+      gh.className = 'unit-sub' + (window._grpOpen[key] ? ' open' : '');
+      gh.innerHTML = '<span>' + (gi + 1) + ' 组 · 单元 ' + from + '-' + to + ' · ' + learnedG + '/' + totalG + '</span><span class="arr">▶</span>';
+      gh.onclick = () => { window._grpOpen[key] = !window._grpOpen[key]; renderUnits(); };
+      ul.appendChild(gh);
+      if (window._grpOpen[key]) renderUnitGrid(ul, chunk, m);
+    });
+  }
+}
+function renderUnitGrid(ul, list, m){
+  const grid = document.createElement('div');
+  grid.className = 'unit-grid';
+  list.forEach(({u, ui}) => {
+    const learned = u.words.filter(w => m[w.id]).length;
+    const done = learned === u.words.length;
+    const c = document.createElement('div');
+    c.className = 'unit-card';
+    c.onclick = () => startUnit(ui);
+    c.innerHTML = '<div class="un">' + (done ? '<span style="color:var(--ok)">✓ </span>' : '') + u.name + '</div>'
+      + '<div class="up">' + u.words[0].kanji + ' 等 ' + u.words.length + ' 词 · ' + learned + '/' + u.words.length + '</div>'
+      + '<div class="unit-bar"><i style="width:' + Math.round(learned / u.words.length * 100) + '%' + (done ? ';background:var(--ok)' : '') + '"></i></div>';
+    grid.appendChild(c);
+  });
+  ul.appendChild(grid);
+}
+
+/* ================= 粘贴文本 · 学拼写(自制课程) ================= */
+function openTextStudy(){ showView('text'); }
+function startTextDrill(){
+  if (!window._textMatches || !window._textMatches.length) return;
+  startFree(window._textMatches.slice(0, 10).map(m => m.w), '文本选词');
+}
+
+/* ---- 自制课程 v1:kuromoji 分词注音,任意文本变成可读可学的课程 ---- */
+let _kuromoji = null, _kuroLoading = false, _kuroWaiters = [];
+function loadKuromoji(cb){
+  if (_kuromoji) return cb(_kuromoji);
+  _kuroWaiters.push(cb);
+  if (_kuroLoading) return;
+  _kuroLoading = true;
+  const finish = tk => { _kuroLoading = false; _kuromoji = tk; _kuroWaiters.forEach(f => f(tk)); _kuroWaiters = []; };
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js';
+  s.onload = () => {
+    kuromoji.builder({ dicPath: 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/' }).build((err, tokenizer) => finish(err ? null : tokenizer));
+  };
+  s.onerror = () => finish(null);
+  document.head.appendChild(s);
+}
+function escHtml(s){ return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function kataToHiraStr(s){ let out = ''; for (const ch of (s || '')){ const c = ch.codePointAt(0); out += (c >= 0x30A1 && c <= 0x30F6) ? String.fromCharCode(c - 0x60) : ch; } return out; }
+function analyzeText(){
+  const text = $('text-input').value.trim();
+  const box = $('text-result');
+  if (!text){ box.innerHTML = '<p class="tip">请先粘贴日文文本</p>'; return; }
+  box.innerHTML = '<p class="tip">正在加载分词词典…首次约需 10-30 秒,之后会离线缓存</p>';
+  Promise.all([
+    new Promise(res => loadKuromoji(res)),
+    loadZhDict(),
+  ]).then(([tokenizer, zmap]) => {
+    if (!tokenizer){ analyzeTextFallback(text, box); return; }
+    analyzeTextSmart(text, box, tokenizer, zmap);
+  });
+}
+let _zhDict = null;
+function loadZhDict(){ // 本地中文释义词典(~0.9MB),供生词入库时查义;SW 缓存后离线可用
+  if (_zhDict) return Promise.resolve(_zhDict);
+  return fetch('zh-dict.json').then(r => r.ok ? r.json() : {}).then(obj => {
+    _zhDict = new Map();
+    for (const [k, v] of Object.entries(obj)){
+      const keys = [k, k.split(/[(（]/)[0], k.replace(/^\(.*?\)/, '').replace(/〜/g, '')];
+      for (const key of keys) if (key && key.length >= 1 && !_zhDict.has(key)) _zhDict.set(key, v);
+    }
+    return _zhDict;
+  }).catch(() => new Map());
+}
+function analyzeTextSmart(text, box, tokenizer, zmap){
+  const tokens = tokenizer.tokenize(text);
+  const CONTENT = ['名詞', '動詞', '形容詞', '形容動詞', '副詞'];
+  const matched = [], newOnes = [];
+  const seenW = new Set(), seenNew = new Set();
+  for (const t of tokens){
+    const reading = kataToHiraStr(t.reading) || kataToHiraStr(t.surface_form);
+    const entry = (t.basic_form && t.basic_form !== '*') ? t.basic_form : t.surface_form; // 词典形(食べて→食べる)
+    let hit = null;
+    for (const w of WORDS){
+      if (w.kanji === entry || w.kanji === t.surface_form || w.kana === reading){ hit = w; break; }
+    }
+    if (hit){
+      t._known = true;
+      if (!seenW.has(hit.id)){ seenW.add(hit.id); matched.push({ w: hit }); }
+    }
+    const isContent = CONTENT.includes(t.pos) && !['非自立', '接尾', '接頭', '数'].includes(t.pos_detail_1)
+      && /[\u3040-\u30ff\u4e00-\u9faf]/.test(t.surface_form) && t.surface_form.length >= 2;
+    if (!hit && isContent && !seenNew.has(entry)){
+      seenNew.add(entry);
+      newOnes.push({
+        kanji: entry, kana: reading, romaji: '', d: guessDiff(reading),
+        meaning: zmap ? (stripGlossMarks(zmap.get(entry)) || stripGlossMarks(zmap.get(t.surface_form)) || stripGlossMarks(zmap.get(reading))) : '',
+      });
+    }
+  }
+  window._textMatches = matched;
+  window._textNew = newOnes;
+  const ruby = tokens.map(t => {
+    const rt = t.reading && kataToHiraStr(t.reading) !== t.surface_form ? '<rt>' + escHtml(kataToHiraStr(t.reading)) + '</rt>' : '';
+    const cls = t._known ? ' class="tok-known"' : '';
+    return '<ruby' + cls + '>' + escHtml(t.surface_form) + rt + '</ruby>';
+  }).join('');
+  box.innerHTML = '<div class="stat-card" style="margin-top:12px">'
+    + '<div class="l">全文 <b>' + tokens.length + '</b> 个词 · 命中词库 <b style="color:var(--accent)">' + seenW.size + '</b> 个 · 生词 <b style="color:var(--bad)">' + newOnes.length + '</b> 个</div>'
+    + '<div class="ruby-text">' + ruby + '</div>'
+    + '<div class="l" style="margin-top:8px;font-size:11px;color:var(--sub)">橙色 = 词库内已可学 · 点击下方按钮开始</div>'
+    + (matched.length ? '<button class="primary-btn" style="margin-top:10px" onclick="startTextDrill()">拼写词库词(' + Math.min(matched.length, 10) + ' 个)</button>' : '')
+    + (newOnes.length ? '<button class="ghost-btn" style="margin-top:10px" onclick="addTextNew()">把 ' + newOnes.length + ' 个生词加入词库并学习</button>' : '')
+    + '</div>';
+}
+function guessDiff(kana){ // 与构建脚本同规则:按读音长度和含音便估难度
+  const plain = kana && [...kana].every(c => /[\u3040-\u309f]/.test(c));
+  if (!kana) return 2;
+  if (kana.length <= 3 && plain) return 1;
+  if (kana.length <= 5 && plain) return 2;
+  return 3;
+}
+function addTextNew(){
+  const arr = window._textNew || [];
+  if (!arr.length) return;
+  const custom = loadCustomWords();
+  arr.forEach((w, i) => { w.id = 'c' + (custom.length + i); }); // 先定 id,学习记录才能落库
+  saveCustomWords([...custom, ...arr]);
+  refreshWords();
+  window._textNew = [];
+  startFree(arr, '自制课程 · 生词');
+}
+function analyzeTextFallback(text, box){ // 离线加载失败时退回旧的关键词匹配
+  const matches = [];
+  for (const w of WORDS){
+    const i = text.indexOf(w.kanji);
+    if (i >= 0) matches.push({ w, i });
+  }
+  matches.sort((a, b) => a.i - b.i);
+  window._textMatches = matches;
+  box.innerHTML = '<div class="stat-card" style="margin-top:12px"><div class="l">分词词典加载失败(离线?),已退回简单匹配:找到 <b style="color:var(--accent)">' + matches.length + '</b> 个词库词</div>'
+    + (matches.length ? '<div style="margin-top:10px">' + matches.slice(0, 30).map(m =>
+        '<span class="combo-chip" onclick="speak(\'' + m.w.kana + '\')">' + m.w.kanji + '<i>' + m.w.kana + '</i></span>').join('') + '</div>'
+      + '<button class="primary-btn" style="margin-top:12px" onclick="startTextDrill()">开始拼写这些词 ×10</button>'
+      : '<div class="l">没有匹配到词库词条,换一段试试</div>') + '</div>';
+}
+
+/* ================= 深色模式 ================= */
+function applyTheme(){
+  const t = localStorage.getItem('kf_theme')
+    || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.classList.toggle('dark', t === 'dark');
+  const b = $('theme-btn');
+  if (b) b.textContent = t === 'dark' ? '☀️ 亮色' : '🌙 深色';
+}
+function toggleTheme(){
+  const dark = document.documentElement.classList.contains('dark');
+  localStorage.setItem('kf_theme', dark ? 'light' : 'dark');
+  applyTheme();
+}
+
+/* ================= 结果浮层 ================= */
+function showResult(title, headline, rows, onAgain){
+  $('r-title').textContent = title;
+  $('r-emoji').innerHTML = '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="m8 12.5 3 3 5.5-6.5"/></svg>'; $('r-emoji').style.color = 'var(--accent)';
+  const box = $('r-rows');
+  box.innerHTML = '';
+  const hl = document.createElement('div');
+  hl.style.cssText = 'font-size:28px;font-weight:800;color:var(--accent);margin:6px 0 10px';
+  hl.textContent = headline;
+  box.appendChild(hl);
+  rows.forEach(([k, v]) => {
+    const d = document.createElement('div');
+    d.className = 'result-row';
+    d.innerHTML = `<span>${k}</span><b>${v}</b>`;
+    box.appendChild(d);
+  });
+  $('r-again').onclick = () => { $('overlay').classList.remove('show'); onAgain(); };
+  $('overlay').classList.add('show');
+}
+
+/* ================= 统计存储 ================= */
+function loadStats(){
+  try { return JSON.parse(localStorage.getItem('kf_stats')) || { sessions:0, chars:0, errors:0 }; }
+  catch { return { sessions:0, chars:0, errors:0 }; }
+}
+function saveStats({ chars, errors }){
+  const s = loadStats();
+  s.errors += errors || 0;
+  if (chars > 0){ s.chars += chars; s.sessions += 1; }
+  localStorage.setItem('kf_stats', JSON.stringify(s));
+}
+function renderStats(){
+  const s = loadStats();
+  $('m-sessions').textContent = s.sessions;
+  $('m-chars').textContent = s.chars;
+  $('m-acc').textContent = (s.chars + s.errors) > 0 ? Math.round(s.chars / (s.chars + s.errors) * 100) + '%' : '—';
+  const wm = wstate();
+  $('m-master').textContent = Object.values(wm).filter(x => x.step >= 2).length;
+  $('m-known').textContent = knownCount();
+  $('m-due').textContent = dueWords().length;
+  $('im-count').textContent = WORDS.length + ' 词(自定义 ' + loadCustomWords().length + ')';
+  // 错词本
+  const wrong = WORDS.filter(w => wm[w.id] && wm[w.id].wrong > 0)
+    .sort((a,b) => wm[b.id].wrong - wm[a.id].wrong).slice(0, 10);
+  $('wrong-list').innerHTML = wrong.length
+    ? wrong.map(w => '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px">'
+        + '<span style="cursor:pointer" onclick="speak(\'' + w.kana + '\')"><b>' + w.kanji + '</b> <span style="color:var(--sub)">' + w.kana + '</span></span>'
+        + '<span style="color:var(--bad);font-size:12px">错 ' + wm[w.id].wrong + ' 次</span></div>').join('')
+    : '<div class="l">暂无错词,保持!</div>';
+}
+function resetStats(){
+  ['kf_stats','kf_words','kf_offset'].forEach(k => localStorage.removeItem(k));
+  renderStats(); renderHome();
+}
+
+/* ================= 外挂词库导入 ================= */
+const K2R = {あ:'a',い:'i',う:'u',え:'e',お:'o',か:'ka',き:'ki',く:'ku',け:'ke',こ:'ko',
+  さ:'sa',し:'shi',す:'su',せ:'se',そ:'so',た:'ta',ち:'chi',つ:'tsu',て:'te',と:'to',
+  な:'na',に:'ni',ぬ:'nu',ね:'ne',の:'no',は:'ha',ひ:'hi',ふ:'fu',へ:'he',ほ:'ho',
+  ま:'ma',み:'mi',む:'mu',め:'me',も:'mo',や:'ya',ゆ:'yu',よ:'yo',
+  ら:'ra',り:'ri',る:'ru',れ:'re',ろ:'ro',わ:'wa',を:'wo',ん:'n',
+  が:'ga',ぎ:'gi',ぐ:'gu',げ:'ge',ご:'go',ざ:'za',じ:'ji',ず:'zu',ぜ:'ze',ぞ:'zo',
+  だ:'da',ぢ:'ji',づ:'zu',で:'de',ど:'do',ば:'ba',び:'bi',ぶ:'bu',べ:'be',ぼ:'bo',
+  ぱ:'pa',ぴ:'pi',ぷ:'pu',ぺ:'pe',ぽ:'po',
+  きゃ:'kya',きゅ:'kyu',きょ:'kyo',しゃ:'sha',しゅ:'shu',しょ:'sho',
+  ちゃ:'cha',ちゅ:'chu',ちょ:'cho',にゃ:'nya',にゅ:'nyu',にょ:'nyo',
+  ひゃ:'hya',ひゅ:'hyu',ひょ:'hyo',みゃ:'mya',みゅ:'myu',みょ:'myo',
+  りゃ:'rya',りゅ:'ryu',りょ:'ryo',ぎゃ:'gya',ぎゅ:'gyu',ぎょ:'gyo',
+  じゃ:'ja',じゅ:'ju',じょ:'jo',びゃ:'bya',びゅ:'byu',びょ:'byo',
+  ぴゃ:'pya',ぴゅ:'pyu',ぴょ:'pyo',ふぁ:'fa',ふぃ:'fi',ふぇ:'fe',ふぉ:'fo',
+  ゃ:'',ゅ:'',ょ:'',ぁ:'',ぃ:'',ぅ:'',ぇ:'',ぉ:''};
+function kanaToRomaji(k){
+  let out = '';
+  for (let i = 0; i < k.length;){
+    if (k[i] === 'っ'){ // 促音:重复下一个假名的首辅音
+      const r = K2R[k.substr(i+1,2)] ?? K2R[k[i+1]];
+      if (r) out += r[0];
+      i++; continue;
+    }
+    const two = k.substr(i,2);
+    if (K2R[two] !== undefined){ out += K2R[two]; i += 2; continue; }
+    const one = k[i];
+    if (one === 'ー'){ out += '-'; i++; continue; }
+    if (K2R[one] !== undefined){ out += K2R[one]; i++; continue; }
+    if (one === ' ') { out += ' '; i++; continue; }
+    i++; // 片名字等无法注音的字符跳过
+  }
+  return out;
+}
+function splitCsv(line){ // 引号感知的 CSV/TSV 切分(释义里常含逗号)
+  const out = []; let cur = '', q = false;
+  for (let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if (q){ if (ch === '"'){ if (line[i+1] === '"'){ cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',' || ch === '\t'){ out.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur.trim()); return out;
+}
+function parseImport(text){
+  text = text.trim();
+  if (!text) throw new Error('内容为空');
+  let items = [];
+  if (text[0] === '['){ // JSON 数组 [{kanji,kana,romaji,d}]
+    items = JSON.parse(text).map(x => ({ kanji:x.kanji||'', kana:x.kana||x.reading||'', romaji:x.romaji||'', d:+x.d||0 }));
+  } else {
+    items = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean)
+      .filter(l => !/汉字[, \t]*假名/.test(l)) // 跳过表头行
+      .map(line => {
+        const p = splitCsv(line);
+        return { kanji:p[0]||'', kana:p[1]||'', romaji:p[2]||'', d:+(p[3]||0), meaning:p[4]||'' };
+      });
+  }
+  const seen = new Set();
+  const out = [];
+  for (const it of items){
+    if (!it.kana || !/[\u3040-\u30ff]/.test(it.kana)) continue; // 假名必须有
+    if (!it.kanji) it.kanji = it.kana;
+    if (seen.has(it.kanji + '|' + it.kana)) continue; // 去重
+    seen.add(it.kanji + '|' + it.kana);
+    out.push({
+      kanji: it.kanji, kana: it.kana,
+      romaji: it.romaji || kanaToRomaji(it.kana),
+      d: [1,2,3].includes(it.d) ? it.d : 2,
+      meaning: it.meaning || '',
+    });
+  }
+  if (!out.length) throw new Error('没有解析出有效词条(需含假名读音)');
+  return out;
+}
+function doImport(){
+  const msg = $('import-msg');
+  try {
+    const words = parseImport($('import-text').value);
+    const arr = loadCustomWords();
+    const exist = new Set(arr.map(w => w.kanji + '|' + w.kana));
+    let added = 0;
+    for (const w of words){
+      if (exist.has(w.kanji + '|' + w.kana)) continue;
+      w.id = 'c' + arr.length; w.order = 1000 + arr.length;
+      arr.push(w); added++;
+    }
+    saveCustomWords(arr);
+    refreshWords();
+    $('import-text').value = '';
+    msg.textContent = '✓ 导入 ' + added + ' 个新词(重复跳过 ' + (words.length - added) + '),当前词库 ' + WORDS.length + ' 词';
+    renderStats(); renderHome();
+  } catch(e){
+    msg.textContent = '✗ ' + e.message;
+  }
+}
+function clearCustom(){
+  localStorage.removeItem('kf_custom');
+  refreshWords();
+  $('import-msg').textContent = '已清空自定义词库,当前 ' + WORDS.length + ' 词';
+  renderStats(); renderHome();
+}
+document.getElementById('import-file').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => { $('import-text').value = reader.result; doImport(); };
+  reader.readAsText(f);
+});
+
+/* ================= 五十音 + 朗读 ================= */
+let kanaKata = false;
+function toKata(s){ // 平假名→片假名(ぁ-れ 区间 +0x60,含小假名)
+  let o = '';
+  for (const ch of s){
+    const c = ch.codePointAt(0);
+    o += (c >= 0x3041 && c <= 0x3096) ? String.fromCharCode(c + 0x60) : ch;
+  }
+  return o;
+}
+function setKanaScript(kata){
+  kanaKata = kata;
+  $('k-hira').classList.toggle('on', !kata);
+  $('k-kata').classList.toggle('on', kata);
+  buildKana();
+}
+function buildKana(){
+  const area = $('kana-area');
+  area.innerHTML = '';
+  KANA_GROUPS.forEach(g => {
+    const chars = kanaKata ? toKata(g.chars) : g.chars;
+    const h = document.createElement('div');
+    h.className = 'unit-sec';
+    h.textContent = g.title;
+    area.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'kana-grid' + (g.size === 2 ? ' cols3' : '');
+    for (let i = 0; i < chars.length; i += g.size){
+      const k = chars.substr(i, g.size);
+      const b = document.createElement('button');
+      b.className = 'kana';
+      b.innerHTML = '<b>' + k + '</b><i>' + kanaToRomaji(k) + '</i>';
+      b.onclick = () => {
+        speak(k);
+        b.classList.add('playing');
+        setTimeout(() => b.classList.remove('playing'), 500);
+      };
+      grid.appendChild(b);
+    }
+    area.appendChild(grid);
+  });
+}
+function speak(text){
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ja-JP'; u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+
+buildKana();
+renderStats();
+renderHome();
+applyTheme();
+loadBank();
+/* PWA:注册 service worker(仅 http/https;需 localhost 或 HTTPS 才生效) */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol))
+  addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+/* 防止点按输入框以外区域时键盘收起后无法重新聚焦 */
+document.getElementById('view-type').addEventListener('click', e => {
+  if (e.target.id !== 't-input' && !document.getElementById('overlay').classList.contains('show'))
+    $('t-input').focus();
+});
+</script>
+</body>
+</html>
