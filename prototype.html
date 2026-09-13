@@ -54,6 +54,8 @@ html.dark{--accent:#D97757;--accent-soft:#3A2E26;--ok:#93B899;--ok-soft:#28332B;
 html.dark .hero{background:var(--accent-soft);border:1px solid var(--line)}
 html.dark .hero h2{color:var(--accent)}
 .example-block{background:var(--bg);border-radius:10px;padding:8px 10px;margin:5px 0;text-align:left;cursor:pointer}
+.example-block .seg{cursor:pointer;border-bottom:1px dashed var(--line)}
+.example-block .seg:active{color:var(--accent)}
 .example-block .jp{font-size:14px;font-weight:600}
 .example-block .kn{font-size:11.5px;color:var(--sub);margin-top:2px}
 .example-block .zh{font-size:11.5px;color:var(--accent);margin-top:2px;opacity:.85}
@@ -203,6 +205,14 @@ body.in-practice .tabbar{display:none}
       <span class="arrow">›</span>
     </div>
     <h3 class="sec-title">自由练习</h3>
+    <div class="mode-card" onclick="startDictation()">
+      <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></div>
+      <div>
+        <h3>听写</h3>
+        <p>只听发音直接拼假名,10 题 · 优先考学过的词</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
     <div class="mode-card" onclick="startQuizDrill()">
       <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6.5 5 12l4 5.5"/><path d="M15 6.5 19 12l-4 5.5"/><path d="M13 4.5 11 19.5"/></svg></div>
       <div>
@@ -239,6 +249,16 @@ body.in-practice .tabbar{display:none}
     <div id="unit-list"></div>
   </main>
 
+  <!-- ============ 生词本(二级页) ============ -->
+  <main id="view-custom">
+    <div class="practice-top">
+      <button class="icon-btn" onclick="switchTab('me')">←</button>
+      <h2 style="font-size:18px">生词本</h2>
+    </div>
+    <p class="tip" style="margin-top:0">自制课程里加入的词都在这里:点词语听发音,释义点一下就能改,右下 ✕ 删除。</p>
+    <div id="custom-list"></div>
+  </main>
+
   <!-- ============ 打字练习 ============ -->
   <main id="view-type">
     <div class="practice-top">
@@ -248,7 +268,7 @@ body.in-practice .tabbar{display:none}
     </div>
     <div class="prompt-card">
       <button class="icon-btn" id="t-dict-btn" style="display:none;margin:0 auto 10px" onclick="replayDict()"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
-      <div class="prompt-word" id="t-word">学校</div>
+      <div class="prompt-word" id="t-word" onclick="replayDict()" style="cursor:pointer">学校</div>
       <div class="prompt-sub" id="t-sub">请用罗马字打出它的假名写法</div>
       <div class="target-line" id="t-target"></div>
     </div>
@@ -286,8 +306,8 @@ body.in-practice .tabbar{display:none}
     </div>
     <div class="quiz-prompt">
       <button class="icon-btn" style="margin:0 auto 10px" onclick="speak(window._lWord&&window._lWord.kana)"><svg class="ic" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
-      <div class="q" id="l-word">猫</div>
-      <div class="qs" id="l-kana">ねこ · neko</div>
+      <div class="q" id="l-word" onclick="speak(window._lWord&&window._lWord.kana)" style="cursor:pointer">猫</div>
+      <div class="qs" id="l-kana" onclick="speak(window._lWord&&window._lWord.kana)" style="cursor:pointer">ねこ · neko</div>
       <div class="qs" id="l-meaning">cat · 猫</div>
       <div id="l-combos" style="margin-top:10px"></div>
       <div id="l-examples" style="margin-top:10px"></div>
@@ -339,6 +359,27 @@ body.in-practice .tabbar{display:none}
       <div class="stat-card"><div class="v" id="m-due">0</div><div class="l">到期复习词数</div></div>
     </div>
     <button class="ghost-btn" onclick="resetStats()">清空学习进度</button>
+
+    <h3 class="sec-title" style="margin-top:22px">生词本</h3>
+    <div class="mode-card" onclick="switchTab('custom')">
+      <div class="mode-icon" style="background:var(--accent-soft);color:var(--accent)"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></div>
+      <div>
+        <h3>自制课程生词</h3>
+        <p id="custom-entry-sub">0 个生词 · 点此查看、改释义、删除</p>
+      </div>
+      <span class="arrow">›</span>
+    </div>
+
+    <h3 class="sec-title" style="margin-top:22px">备份与恢复</h3>
+    <div class="stat-card" style="grid-column:1/-1">
+      <div class="l" style="text-align:left">进度保存在本机浏览器。换设备时点「导出进度码」,复制后在新设备粘贴导入,即可无缝继续。</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="ghost-btn" style="flex:1;margin-top:0" onclick="exportProgress()">导出进度码</button>
+        <button class="ghost-btn" style="flex:1;margin-top:0;background:var(--accent);color:#fff;border-color:var(--accent)" onclick="importProgress()">导入</button>
+      </div>
+      <textarea id="xfer-box" class="type-input" style="display:none;height:70px;margin-top:8px;text-align:left;font-size:11px;letter-spacing:0;padding:8px" placeholder="导出码会出现在这里 / 把另一台设备的导出码粘到这里再点导入"></textarea>
+      <div class="tip" id="xfer-msg" style="margin-top:6px"></div>
+    </div>
 
     <h3 class="sec-title" style="margin-top:22px">错词本</h3>
     <div class="stat-card" style="grid-column:1/-1">
@@ -623,12 +664,16 @@ function advanceDay(){ localStorage.setItem('kf_offset', offsetMs()+26*3600e3); 
 const $ = id => document.getElementById(id);
 function switchTab(tab){
   document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
-  document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab || (tab === 'units' && b.dataset.tab === 'home')));
+  document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on',
+    b.dataset.tab === tab
+    || (tab === 'units' && b.dataset.tab === 'home')
+    || (tab === 'custom' && b.dataset.tab === 'me')));
   $('view-' + tab).classList.add('active');
   document.body.classList.remove('in-practice');
   if (tab === 'me') renderStats();
   if (tab === 'home') renderHome();
   if (tab === 'units') renderUnits();
+  if (tab === 'custom') renderCustomList();
   window.scrollTo(0,0);
 }
 function showView(name){
@@ -665,7 +710,10 @@ function startFree(list, pillText, opts){
   renderTypeWord();
 }
 function startDictation(){
-  startFree(shuffle([...WORDS]).slice(0, 10), '听写', {dictation:true});
+  const m = wstate();
+  const learned = WORDS.filter(w => m[w.id]);
+  const pool = learned.length >= 4 ? learned : WORDS.filter(w => w.d === 1);
+  startFree(shuffle([...pool]).slice(0, 10), '听写', {dictation:true});
 }
 function startKanaDrill(all){
   const groups = all ? KANA_GROUPS : KANA_GROUPS.filter(g => g.title.includes('清音'));
@@ -1196,9 +1244,10 @@ function showLearn(w){
     : '';
   const exs = makeExamples(w);
   $('l-examples').innerHTML = exs.length
-    ? '<div style="font-size:11px;color:var(--sub);margin-bottom:2px">例句 · 点击朗读</div>'
-      + exs.map(x => '<div class="example-block" onclick="speak(\'' + x.kana.replace(/ /g, '') + '\')"><div class="jp">' + x.jp + '</div><div class="kn">' + x.kana + '</div>'
-        + (x.zh ? '<div class="zh">' + x.zh + '</div>' : '') + '</div>').join('')
+    ? '<div style="font-size:11px;color:var(--sub);margin-bottom:2px">例句 · 点假名单词逐词听 · 点汉字行听整句</div>'
+      + exs.map(x => '<div class="example-block" onclick="speak(\'' + x.kana.replace(/ /g, '') + '\')"><div class="jp">' + x.jp + '</div><div class="kn">'
+        + x.kana.split(' ').map(seg => '<span class="seg" onclick="event.stopPropagation();speak(\'' + seg + '\')">' + seg + '</span>').join(' ')
+        + '</div>' + (x.zh ? '<div class="zh">' + x.zh + '</div>' : '') + '</div>').join('')
     : '';
   $('l-diff').textContent = DIFF_LABEL[w.d];
   const learnItems = F.queue.filter(x => x.type === 'learn');
@@ -1332,6 +1381,77 @@ function loadKuromoji(cb){
   document.head.appendChild(s);
 }
 function escHtml(s){ return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escAttr(s){ return escHtml(s).replace(/"/g, '&quot;'); }
+
+/* ---- 生词本:自制课程自定义词的管理(点读/改释义/删除) ---- */
+function renderCustomList(){
+  const box = $('custom-list'); box.innerHTML = '';
+  const arr = loadCustomWords();
+  const ce = $('custom-entry-sub');
+  if (ce) ce.textContent = arr.length + ' 个生词 · 点此查看、改释义、删除';
+  if (!arr.length){
+    box.innerHTML = '<p class="tip">还没有生词。在首页「粘贴日文 · 学拼写」里分析文本,就能把生词加进来。</p>';
+    return;
+  }
+  arr.forEach((w, i) => {
+    const row = document.createElement('div');
+    row.className = 'stat-card';
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;margin:8px 0;text-align:left;width:100%';
+    row.innerHTML =
+      '<div style="flex:1;min-width:0;cursor:pointer" onclick="speak(\'' + w.kana + '\')">'
+      + '<div style="font-weight:700;font-size:16px;color:var(--ink)">' + escHtml(w.kanji)
+      + ' <span style="font-size:11px;color:var(--sub);font-weight:400">' + escHtml(w.kana) + '</span></div>'
+      + '<input class="type-input" style="height:auto;padding:4px 8px;font-size:12px;letter-spacing:0;margin-top:4px" value="'
+      + escAttr(w.meaning || '') + '" placeholder="释义(点此填写/修改)" onchange="editCustomMeaning(' + i + ', this.value)">'
+      + '</div>'
+      + '<button class="ghost-btn" style="margin:0;padding:6px 12px" onclick="deleteCustom(' + i + ')">✕</button>';
+    box.appendChild(row);
+  });
+}
+function editCustomMeaning(i, v){
+  const arr = loadCustomWords();
+  if (!arr[i]) return;
+  arr[i].meaning = v.trim();
+  saveCustomWords(arr);
+  refreshWords();
+}
+function deleteCustom(i){
+  const arr = loadCustomWords();
+  if (!arr[i]) return;
+  if (!confirm('删除「' + arr[i].kanji + '」?它的学习记录也会一并清除。')) return;
+  const m = wstate();
+  if (arr[i].id && m[arr[i].id]){ delete m[arr[i].id]; wsave(m); }
+  arr.splice(i, 1);
+  saveCustomWords(arr);
+  refreshWords();
+  renderCustomList();
+  renderStats();
+}
+
+/* ---- 进度备份与恢复:序列化 localStorage 为可复制的导出码 ---- */
+const XFER_KEYS = ['kf_words', 'kf_custom', 'kf_stats', 'kf_theme', 'kf_offset'];
+function exportProgress(){
+  const data = {};
+  for (const k of XFER_KEYS){ const v = localStorage.getItem(k); if (v) data[k] = v; }
+  const ta = $('xfer-box');
+  ta.style.display = 'block';
+  ta.value = 'KF1.' + btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  ta.focus(); ta.select();
+  $('xfer-msg').textContent = '导出码已生成(已全选):复制保存,在另一台设备粘贴后点「导入」';
+}
+function importProgress(){
+  const raw = $('xfer-box').value.trim();
+  const msg = $('xfer-msg');
+  if (!raw.startsWith('KF1.')){ msg.textContent = '这不是有效的导出码(应以 KF1. 开头)'; return; }
+  try {
+    const data = JSON.parse(decodeURIComponent(escape(atob(raw.slice(4)))));
+    let n = 0;
+    for (const k of Object.keys(data)) if (XFER_KEYS.includes(k)) { localStorage.setItem(k, String(data[k])); n++; }
+    refreshWords();
+    renderStats(); renderHome();
+    msg.textContent = '导入成功(' + n + ' 项):已学 ' + knownCount() + ' 词,生词本 ' + loadCustomWords().length + ' 个';
+  } catch (e){ msg.textContent = '导入码无法解析,请确认完整复制'; }
+}
 function kataToHiraStr(s){ let out = ''; for (const ch of (s || '')){ const c = ch.codePointAt(0); out += (c >= 0x30A1 && c <= 0x30F6) ? String.fromCharCode(c - 0x60) : ch; } return out; }
 function analyzeText(){
   const text = $('text-input').value.trim();
@@ -1478,6 +1598,8 @@ function saveStats({ chars, errors }){
 }
 function renderStats(){
   const s = loadStats();
+  const ce = $('custom-entry-sub');
+  if (ce) ce.textContent = loadCustomWords().length + ' 个生词 · 点此查看、改释义、删除';
   $('m-sessions').textContent = s.sessions;
   $('m-chars').textContent = s.chars;
   $('m-acc').textContent = (s.chars + s.errors) > 0 ? Math.round(s.chars / (s.chars + s.errors) * 100) + '%' : '—';
@@ -1642,7 +1764,7 @@ function buildKana(){
       const k = chars.substr(i, g.size);
       const b = document.createElement('button');
       b.className = 'kana';
-      b.innerHTML = '<b>' + k + '</b><i>' + kanaToRomaji(k) + '</i>';
+      b.innerHTML = '<b>' + k + '</b><i>' + kanaToRomaji(kataToHiraStr(k)) + '</i>';
       b.onclick = () => {
         speak(k);
         b.classList.add('playing');
