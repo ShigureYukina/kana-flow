@@ -191,3 +191,12 @@ cd E:\japan && python -m http.server 8642 --bind 127.0.0.1
 - iOS 添加主屏需 PNG apple-touch-icon(SVG 不被 Safari 识别)
 - 自制课程生词暂无释义(kuromoji 无词义),可接 JMdict 查询
 - 生词含活用形(如「食べて」)会按表层形入库,词典形归一待做
+
+## v0.6 更新(2026-09-13 · 路线图 1-3 项落地 + 上线)
+
+1. **部署上线**:GitHub Pages https://shigureyukina.github.io/kana-flow/prototype.html
+   - iOS 图标 PNG(icon-180/192/512,浏览器 canvas 栅格化)+ manifest/apple-touch-icon
+   - git 推送被网络重置时的替代通道:GitHub Contents API 逐文件上传(node 生成 payload + gh api --input)
+2. **自制课程 v2**:生词按词典形入库(kuromoji basic_form,食べて→食べル);入库时查本地 zh-dict.json 给中文释义(自动去注音/词性标记);SW 预缓存 zh-dict 供离线
+3. **读音选择独立模式**:首页「自由练习」新增入口;优先考已学词;干扰项分级(同难度+2 / 首音相同+2 / 读音等长+1 / 同含促音拗音长音+1,随机打散)
+4. **UI**:首页复习入口去紧迫感(「复习时间到」→「复习巩固」,普通卡片视觉);五十音格加罗马音标注、间距放宽;篇/组/单元三级折叠(每组 20 单元);内部滚动条隐藏;首页只留「继续学习」卡,单元列表移至二级页;选择题答题后改为「下一题/重做这题」按钮,不再自动跳转
