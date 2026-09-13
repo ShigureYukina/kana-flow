@@ -29,12 +29,11 @@ main{display:none;animation:fade .18s ease}
 main.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-/* ---------- 顶部 ---------- */
-.topbar{padding:18px 20px 8px;display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
-.topbar h1{font-size:clamp(16px,5.2vw,20px);letter-spacing:.5px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
-.topbar .tag{flex-shrink:0}
-.topbar .brand{color:var(--accent);font-weight:800}
-.tag{font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:3px 8px;font-weight:600}
+/* ---------- 顶部:学习状态条(当前位置 + 今日词数) ---------- */
+.topbar{padding:16px 20px 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--sub);cursor:pointer}
+.topbar:active{opacity:.7}
+body.in-practice .topbar{display:none}
+#topbar-status b{color:var(--ink);font-weight:700}
 
 /* ---------- 首页 ---------- */
 .hero{background:var(--accent-soft);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;position:relative}
@@ -175,8 +174,11 @@ body.in-practice .tabbar{display:none}
 <div id="app">
 
   <!-- ============ 首页 ============ -->
-  <div class="topbar"><h1><span class="brand">かなフロー</span> 日语打字</h1><span class="tag">v0.4</span></div>
+  <div class="topbar" id="topbar-status" onclick="switchTab('home')" aria-hidden="true"></div>
   <main id="view-home" class="active">
+    <div class="task-card" id="bank-error" onclick="loadBank()" style="display:none;margin-bottom:16px;border-color:var(--bad)">
+      <h2 style="color:var(--bad)">词库加载失败</h2><p>网络或缓存出了问题,点击重试。练习功能仍可使用。</p>
+    </div>
     <div class="hero" id="onboard" style="display:none">
       <h2>三步,开始你的日语拼写</h2>
       <p>① 点「继续学习」认新词:听发音、看组合词和例句;<br>② 立刻拼写:打罗马字实时变假名,错了会提示;<br>③ 点选题巩固,错的词之后自动安排复习。<br>没有每日任务、没有打卡,进度由你掌握——想学就学。</p>
@@ -387,11 +389,14 @@ body.in-practice .tabbar{display:none}
 
     <h3 class="sec-title" style="margin-top:22px">备份与恢复</h3>
     <div class="stat-card" style="grid-column:1/-1">
-      <div class="l" style="text-align:left">进度保存在本机浏览器。换设备时点「导出进度码」,复制后在新设备粘贴导入,即可无缝继续。</div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="ghost-btn" style="flex:1;margin-top:0" onclick="exportProgress()">导出进度码</button>
-        <button class="ghost-btn" style="flex:1;margin-top:0;background:var(--accent);color:#fff;border-color:var(--accent)" onclick="importProgress()">导入</button>
+      <div class="l" style="text-align:left">进度保存在本机浏览器——<b style="color:var(--bad)">清除浏览器站点数据会把进度一起清掉</b>,建议定期导出备份。换设备时导出再导入,即可无缝继续。</div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="ghost-btn" style="flex:1;margin-top:0;min-width:40%" onclick="exportProgressFile()">下载备份文件</button>
+        <button class="ghost-btn" style="flex:1;margin-top:0;min-width:40%" onclick="document.getElementById('xfer-file').click()">从文件导入</button>
+        <button class="ghost-btn" style="flex:1;margin-top:0;min-width:40%" onclick="exportProgress()">导出文本码</button>
+        <button class="ghost-btn" style="flex:1;margin-top:0;min-width:40%" onclick="importProgress()">导入文本码</button>
       </div>
+      <input type="file" id="xfer-file" accept=".json" style="display:none" onchange="importProgressFile(this)">
       <textarea id="xfer-box" class="type-input" style="display:none;height:70px;margin-top:8px;text-align:left;font-size:11px;letter-spacing:0;padding:8px" placeholder="导出码会出现在这里 / 把另一台设备的导出码粘到这里再点导入"></textarea>
       <div class="tip" id="xfer-msg" style="margin-top:6px"></div>
     </div>
@@ -414,7 +419,17 @@ body.in-practice .tabbar{display:none}
       <input type="file" id="import-file" accept=".csv,.txt,.tsv,.json" style="display:none">
       <div class="l" id="import-msg" style="margin-top:8px;color:var(--accent)"></div>
     </div>
-    <p class="tip">原型的所有进度仅保存在本机 localStorage。正式版:PWA 离线 + 登录云同步。</p>
+    <h3 class="sec-title" style="margin-top:22px">关于作者</h3>
+    <div class="stat-card" style="grid-column:1/-1;text-align:left">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
+        <b style="color:var(--ink);font-size:15px">かなフロー</b>
+        <span style="font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:2px 8px;font-weight:600" id="app-ver">1.0</span>
+      </div>
+      <div class="l" style="text-align:left">设计与开发:<b style="color:var(--ink)">ShigureYukina</b></div>
+      <div class="l" style="text-align:left;margin-top:4px">源码与反馈:<a href="https://github.com/ShigureYukina/kana-flow" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">github.com/ShigureYukina/kana-flow</a></div>
+      <div class="l" style="text-align:left;margin-top:4px">词表与释义来自开源社区(open-anki-jlpt-decks · CC-BY / lxl66566 日中词典 · Unlicense),发音由浏览器 Web Speech 提供,详见仓库 README。</div>
+      <div class="l" style="text-align:left;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><b style="color:var(--ink)">隐私说明:</b>所有学习数据 100% 保存在你的设备本地,本应用无账号、无统计、无广告、无第三方追踪;唯一联网加载的是分词词典(kuromoji,自制课程首次使用时),识别语音的功能未启用。</div>
+    </div>
   </main>
 
   <!-- ============ 底部导航 ============ -->
@@ -523,10 +538,22 @@ function parseBankCsv(text, d, pre){
   }).filter(w => w.kanji && w.kana);
 }
 function loadBank(){
+  let failed = 0;
   Promise.all(BANK_FILES.map(([pre, file, d]) =>
-    fetch(file).then(r => r.ok ? r.text() : '').catch(() => '').then(t => t ? parseBankCsv(t, d, pre) : [])
+    fetch(file).then(r => {
+      if (!r.ok){ failed++; return ''; }
+      return r.text();
+    }).catch(() => { failed++; return ''; }).then(t => t ? parseBankCsv(t, d, pre) : [])
   )).then(lists => {
     BANK = lists.flat();
+    const err = $('bank-error');
+    if (failed){ // 部分或全部失败:显示重试横幅,已成功的部分照常可用
+      if (BANK.length){ migrateCustomIntoBank(); refreshWords(); }
+      if (err) err.style.display = 'block';
+      renderHome();
+      return;
+    }
+    if (err) err.style.display = 'none';
     if (!BANK.length) return;
     migrateCustomIntoBank();
     refreshWords();
@@ -673,6 +700,27 @@ function recordWord(w, ok){ // SM-2 简化版:前两步固定短间隔,之后按
   }
   s.due = now() + (s.step === 0 ? 2*60e3 : s.step === 1 ? 10*60e3 : (s.int || 1)*86400e3);
   m[w.id] = s; wsave(m);
+  bumpToday();
+  renderTopbar();
+}
+function bumpToday(){ // 今日词数:每完成一个词(学/复/测)记一次,跨天自动归零
+  const d = new Date().toISOString().slice(0, 10);
+  let t;
+  try { t = JSON.parse(localStorage.getItem('kf_today')) || {}; } catch(e){ t = {}; }
+  if (t.d !== d) t = { d, n: 0 };
+  t.n++;
+  localStorage.setItem('kf_today', JSON.stringify(t));
+}
+function renderTopbar(){ // 顶栏:学习状态(当前位置 + 今日词数),点击回首页
+  const tb = document.getElementById('topbar-status');
+  if (!tb) return;
+  const units = buildUnits();
+  const u = units.length ? currentUnit(units) : null;
+  const sec = u ? ({1:'入门篇', 2:'基础篇', 3:'进阶篇'}[u.d] || '') : '';
+  let n = 0;
+  try { const t = JSON.parse(localStorage.getItem('kf_today')) || {}; if (t.d === new Date().toISOString().slice(0, 10)) n = t.n; } catch(e){}
+  tb.innerHTML = '<span>' + (u ? '<b>' + sec + ' · ' + u.name + '</b>' : '加载词库中…') + '</span>'
+    + '<span>今日 ' + n + ' 词</span>';
 }
 function advanceDay(){ localStorage.setItem('kf_offset', offsetMs()+26*3600e3); renderHome(); renderStats(); }
 
@@ -1101,12 +1149,22 @@ function comboList(w){
   const stem = chars.length > 1 ? chars.slice(0, -1) : chars; // 末尾字多为后缀(如「椅子」的「子」),只用词干匹配,避免无关组合
   const seen = new Set([w.kanji]);
   const out = [];
-  for (const x of WORDS){ // 词库内含同字根的词(真实例词,含读音)
+  // 词库内含同字根的词(真实例词,含读音),按相关度打分取最优 8 个
+  const scored = [];
+  for (const x of WORDS){
     if (seen.has(x.kanji)) continue;
-    if (stem.some(c => x.kanji.includes(c))){ out.push(x); seen.add(x.kanji); }
-    if (out.length >= 8) break;
+    const hits = stem.filter(c => x.kanji.includes(c));
+    if (!hits.length) continue;
+    let s = Math.random() * 0.8;
+    s += hits.length * 2; // 共享字根越多越相关
+    chars.forEach((c, i) => { if (x.kanji[i] === c) s += 2; }); // 同位置同字(如「水」/「水道」都在首位)加高分
+    if (x.kanji.length > 1 && hits.every(c => x.kanji[x.kanji.length - 1] === c)) s -= 1.5; // 只在候选词末位匹配降权
+    scored.push({ x, s });
   }
-  for (const kanji of [w.kanji, ...(chars.length ? chars : [])]){ // 内置组合兜底(先整词后单字)
+  scored.sort((a, b) => b.s - a.s);
+  for (const o of scored){ if (out.length >= 8) break; out.push(o.x); seen.add(o.x.kanji); }
+  // 内置组合兜底(先整词后单字)
+  for (const kanji of [w.kanji, ...chars]){
     for (const c of (COMBOS[kanji] || [])){
       if (out.length >= 8) break;
       if (!seen.has(c.kanji)){ out.push(c); seen.add(c.kanji); }
@@ -1230,6 +1288,342 @@ const EXAMPLES = {
   '静か':[{jp:'図書館は静かです',kana:'としょかんは しずか です',zh:'图书馆很安静'}],
   '便利':[{jp:'この駅は便利です',kana:'この えきは べんり です',zh:'这个车站很方便'}],
   '簡単':[{jp:'この問題は簡単です',kana:'この もんだいは かんたん です',zh:'这道题很简单'}],
+  'ああ':[{jp:'ああ、いい天気ですね',kana:'ああ いいてんきですね',zh:'今天天气真好啊'}],
+  '青':[{jp:'信号は青です',kana:'しんごうは あおです',zh:'信号灯是绿灯'}],
+  '青い':[{jp:'空がとても青いです',kana:'そらが とても あおいです',zh:'天空非常蓝'}],
+  '赤':[{jp:'赤は好きな色です',kana:'あかは すきな いろです',zh:'红色是我喜欢的颜色'}],
+  '赤い':[{jp:'このりんごは赤いです',kana:'この りんごは あかいです',zh:'这个苹果是红的'}],
+  '開く':[{jp:'店は九時に開きます',kana:'みせは くじに あきます',zh:'店铺九点开门'}],
+  '開ける':[{jp:'窓を開けてください',kana:'まどを あけてください',zh:'请把窗打开'}],
+  '上げる':[{jp:'手を上げてください',kana:'てを あげてください',zh:'请举手'}],
+  '足; 脚':[{jp:'足が痛いです',kana:'あしが いたいです',zh:'脚疼'}],
+  '明日':[{jp:'明日は休みです',kana:'あしたは やすみです',zh:'明天休息'}],
+  'あそこ':[{jp:'あそこで待ちましょう',kana:'あそこで まちましょう',zh:'在那边等吧'}],
+  '遊ぶ':[{jp:'公園で遊びましょう',kana:'こうえんで あそびましょう',zh:'在公园玩吧'}],
+  '頭':[{jp:'妹は頭がいいです',kana:'いもうとは あたまが いいです',zh:'妹妹很聪明'}],
+  'あちら':[{jp:'あちらは田中さんです',kana:'あちらは たなかさんです',zh:'那位是田中先生'}],
+  '暑い':[{jp:'今日は暑いですね',kana:'きょうは あついですね',zh:'今天真热啊'}],
+  '熱い':[{jp:'お湯は熱いですよ',kana:'おゆは あついですよ',zh:'开水很烫哦'}],
+  '厚い':[{jp:'この本は厚いです',kana:'この ほんは あついです',zh:'这本书很厚'}],
+  '後':[{jp:'後で電話します',kana:'あとで でんわします',zh:'待会儿打电话'}],
+  'あなた':[{jp:'あなたの名前は何ですか',kana:'あなたの なまえは なんですか',zh:'你叫什么名字'}],
+  'あの':[{jp:'あの山は富士山です',kana:'あの やまは ふじさんです',zh:'那座山是富士山'}],
+  '浴びる':[{jp:'毎朝シャワーを浴びます',kana:'まいあさ シャワーを あびます',zh:'每天早上冲澡'}],
+  '甘い':[{jp:'このケーキは甘いです',kana:'この ケーキは あまいです',zh:'这个蛋糕很甜'}],
+  '余り':[{jp:'余り食べないでください',kana:'あまり たべないでください',zh:'请不要吃太多'}],
+  '飴':[{jp:'子供に飴をあげました',kana:'こどもに あめを あげました',zh:'给了孩子一块糖'}],
+  '洗う':[{jp:'毎日手を洗います',kana:'まいにち てを あらいます',zh:'每天洗手'}],
+  '在る':[{jp:'教室に机が在ります',kana:'きょうしつに つくえが あります',zh:'教室里有桌子'}],
+  '有る':[{jp:'お金が有ります',kana:'おかねが あります',zh:'有钱'}],
+  '歩く':[{jp:'駅まで歩きます',kana:'えきまで あるきます',zh:'走路到车站'}],
+  'あれ':[{jp:'あれは何ですか',kana:'あれは なんですか',zh:'那是什么'}],
+  'いいえ':[{jp:'いいえ、違います',kana:'いいえ ちがいます',zh:'不,不是'}],
+  '家':[{jp:'今日は家にいます',kana:'きょうは いえに います',zh:'今天待在家里'}],
+  'いかが':[{jp:'お茶はいかがですか',kana:'おちゃは いかがですか',zh:'来杯茶怎么样'}],
+  'いくつ':[{jp:'お子さんはいくつですか',kana:'おこさんは いくつですか',zh:'孩子几岁了'}],
+  'いくら':[{jp:'これはいくらですか',kana:'これは いくらですか',zh:'这个多少钱'}],
+  '池':[{jp:'池に鯉がいます',kana:'いけに こいが います',zh:'池塘里有鲤鱼'}],
+  '椅子':[{jp:'この椅子は高いです',kana:'この いすは たかいです',zh:'这把椅子很贵'}],
+  '一':[{jp:'一から始めましょう',kana:'いちから はじめましょう',zh:'从一开始吧'}],
+  'いつ':[{jp:'いつ日本へ来ましたか',kana:'いつ にほんへ きましたか',zh:'你什么时候来日本的'}],
+  '五日':[{jp:'誕生日は五日です',kana:'たんじょうびは いつかです',zh:'生日是五号'}],
+  '五つ':[{jp:'りんごを五つ買いました',kana:'りんごを いつつ かいました',zh:'买了五个苹果'}],
+  'いつも':[{jp:'いつもお世話になっています',kana:'いつも おせわに なっています',zh:'总是承蒙您的关照'}],
+  '意味':[{jp:'この言葉の意味が分かりません',kana:'この ことばの いみが わかりません',zh:'不懂这个词的意思'}],
+  '嫌':[{jp:'嫌なことを忘れました',kana:'いやな ことを わすれました',zh:'把讨厌的事忘了'}],
+  '居る':[{jp:'家に猫が居ます',kana:'いえに ねこが います',zh:'家里养着猫'}],
+  '要る':[{jp:'切手が要ります',kana:'きってが いります',zh:'需要邮票'}],
+  '入れる':[{jp:'財布をかばんに入れます',kana:'さいふを かばんに いれます',zh:'把钱包放进包里'}],
+  '色':[{jp:'どんな色が好きですか',kana:'どんな いろが すきですか',zh:'你喜欢什么颜色'}],
+  '後ろ':[{jp:'後ろを見てください',kana:'うしろを みてください',zh:'请看后面'}],
+  '薄い':[{jp:'このスープは薄いです',kana:'この スープは うすいです',zh:'这个汤很淡'}],
+  '歌':[{jp:'この歌は人気があります',kana:'この うたは にんきが あります',zh:'这首歌很受欢迎'}],
+  '歌う':[{jp:'カラオケで歌いました',kana:'カラオケで うたいました',zh:'在卡拉OK唱了歌'}],
+  'うち':[{jp:'うちの子はまだ小学生です',kana:'うちの こは まだ しょうがくせいです',zh:'我家孩子还是小学生'}],
+  '海':[{jp:'夏は海へ行きます',kana:'なつは うみへ いきます',zh:'夏天去海边'}],
+  '売る':[{jp:'古い本を売りました',kana:'ふるい ほんを うりました',zh:'把旧书卖了'}],
+  '上着':[{jp:'上着を着てください',kana:'うわぎを きてください',zh:'请穿上外套'}],
+  '絵':[{jp:'壁に絵がかかっています',kana:'かべに えが かかっています',zh:'墙上挂着画'}],
+  '英語':[{jp:'英語を勉強しています',kana:'えいごを べんきょうしています',zh:'正在学英语'}],
+  'ええ':[{jp:'ええ、そうです',kana:'ええ そうです',zh:'嗯,是的'}],
+  '多い':[{jp:'この町は人が多いです',kana:'この まちは ひとが おおいです',zh:'这个城市人很多'}],
+  'お菓子':[{jp:'お菓子を食べすぎました',kana:'おかしを たべすぎました',zh:'点心吃多了'}],
+  'お金':[{jp:'お金が足りません',kana:'おかねが たりません',zh:'钱不够'}],
+  '置く':[{jp:'本を机に置きます',kana:'ほんを つくえに おきます',zh:'把书放在桌上'}],
+  'お酒':[{jp:'お酒は少ししか飲みません',kana:'おさけは すこししか のみません',zh:'酒只喝一点点'}],
+  'お皿':[{jp:'お皿を三枚ください',kana:'おさらを さんまい ください',zh:'请给我三个盘子'}],
+  '押す':[{jp:'このボタンを押してください',kana:'この ボタンを おしてください',zh:'请按这个按钮'}],
+  '大人':[{jp:'大人にも人気のアニメです',kana:'おとなにも にんきの アニメです',zh:'这是大人也喜欢的动画'}],
+  'お腹':[{jp:'お腹がすきました',kana:'おなかが すきました',zh:'肚子饿了'}],
+  '同じ':[{jp:'同じ物をください',kana:'おなじ ものを ください',zh:'请给我一个一样的'}],
+  'お風呂':[{jp:'毎晩お風呂に入ります',kana:'まいばん おふろに はいります',zh:'每晚都泡澡'}],
+  '重い':[{jp:'この荷物は重いです',kana:'この にもつは おもいです',zh:'这个行李很重'}],
+  '泳ぐ':[{jp:'海で泳ぎました',kana:'うみで およぎました',zh:'在海里游泳了'}],
+  '降りる':[{jp:'バスで行って、駅で降ります',kana:'バスで いって えきで おります',zh:'坐巴士去,在车站下车'}],
+  '終る':[{jp:'授業が終わりました',kana:'じゅぎょうが おわりました',zh:'课结束了'}],
+  '返す':[{jp:'図書館に本を返します',kana:'としょかんに ほんを かえします',zh:'把书还给图书馆'}],
+  '顔':[{jp:'顔が赤いですよ',kana:'かおが あかいですよ',zh:'你脸很红哦'}],
+  'かかる':[{jp:'空港まで時間がかかります',kana:'くうこうまで じかんが かかります',zh:'到机场很花时间'}],
+  '鍵':[{jp:'車の鍵を忘れました',kana:'くるまの かぎを わすれました',zh:'忘了拿车钥匙'}],
+  '掛ける':[{jp:'壁に絵を掛けます',kana:'かべに えを かけます',zh:'把画挂在墙上'}],
+  'かける':[{jp:'先生に電話をかけました',kana:'せんせいに でんわを かけました',zh:'给老师打了电话'}],
+  '傘':[{jp:'傘を持って行きましょう',kana:'かさを もって いきましょう',zh:'带上伞去吧'}],
+  '貸す':[{jp:'友達に本を貸しました',kana:'ともだちに ほんを かしました',zh:'把书借给朋友了'}],
+  '風':[{jp:'春の風は暖かいです',kana:'はるの かぜは あたたかいです',zh:'春风很温暖'}],
+  '風邪':[{jp:'風邪をひきました',kana:'かぜを ひきました',zh:'感冒了'}],
+  '方':[{jp:'右の方へ行ってください',kana:'みぎの ほうへ いってください',zh:'请往右边走'}],
+  'カップ':[{jp:'カップでコーヒーを飲みます',kana:'カップで コーヒーを のみます',zh:'用杯子喝咖啡'}],
+  '家庭':[{jp:'家庭料理が好きです',kana:'かていりょうりが すきです',zh:'喜欢家常菜'}],
+  '角':[{jp:'角を右へ曲がってください',kana:'かどを みぎへ まがってください',zh:'请在拐角右转'}],
+  'かばん':[{jp:'かばんに本が入っています',kana:'かばんに ほんが はいっています',zh:'包里装着书'}],
+  '花瓶':[{jp:'花瓶に花を入れます',kana:'かびんに はなを いれます',zh:'把花插进花瓶'}],
+  'かぶる':[{jp:'帽子をかぶりました',kana:'ぼうしを かぶりました',zh:'戴上帽子了'}],
+  '紙':[{jp:'紙に名前を書きます',kana:'かみに なまえを かきます',zh:'把名字写在纸上'}],
+  'カメラ':[{jp:'カメラで写真を撮ります',kana:'カメラで しゃしんを とります',zh:'用相机拍照'}],
+  '辛い':[{jp:'このカレーは辛いです',kana:'この カレーは からいです',zh:'这个咖喱很辣'}],
+  '体':[{jp:'毎日運動して体を作ります',kana:'まいにち うんどうして からだを つくります',zh:'每天运动锻炼身体'}],
+  '借りる':[{jp:'図書館で本を借ります',kana:'としょかんで ほんを かります',zh:'在图书馆借书'}],
+  '軽い':[{jp:'この荷物は軽いです',kana:'この にもつは かるいです',zh:'这个行李很轻'}],
+  '川; 河':[{jp:'川の水は冷たいです',kana:'かわの みずは つめたいです',zh:'河水很凉'}],
+  '漢字':[{jp:'漢字を百個覚えました',kana:'かんじを ひゃっこ おぼえました',zh:'记住了一百个汉字'}],
+  '木':[{jp:'庭に大きい木があります',kana:'にわに おおきい きが あります',zh:'院子里有棵大树'}],
+  '黄色':[{jp:'信号が黄色になりました',kana:'しんごうが きいろに なりました',zh:'信号灯变黄了'}],
+  '消える':[{jp:'雪が消えました',kana:'ゆきが きえました',zh:'雪化了'}],
+  '聞く':[{jp:'先生に聞きます',kana:'せんせいに ききます',zh:'问老师'}],
+  '北':[{jp:'北の国から来ました',kana:'きたの くにから きました',zh:'我从北方的国家来'}],
+  '昨日':[{jp:'昨日は雨でした',kana:'きのうは あめでした',zh:'昨天下雨了'}],
+  '嫌い':[{jp:'野菜が嫌いです',kana:'やさいが きらいです',zh:'讨厌吃蔬菜'}],
+  '切る':[{jp:'パンを切ります',kana:'パンを きります',zh:'切面包'}],
+  '着る':[{jp:'新しい服を着ます',kana:'あたらしい ふくを きます',zh:'穿新衣服'}],
+  '綺麗':[{jp:'この部屋は綺麗ですね',kana:'この へやは きれいですね',zh:'这个房间真干净'}],
+  '九':[{jp:'九時に寝ます',kana:'くじに ねます',zh:'九点睡觉'}],
+  '靴':[{jp:'靴を脱いでください',kana:'くつを ぬいでください',zh:'请脱鞋'}],
+  '国':[{jp:'どこの国から来ましたか',kana:'どこの くにから きましたか',zh:'你来自哪个国家'}],
+  '曇り':[{jp:'今日は曇りです',kana:'きょうは くもりです',zh:'今天阴天'}],
+  '曇る':[{jp:'空が曇ってきました',kana:'そらが くもってきました',zh:'天阴下来了'}],
+  '暗い':[{jp:'部屋が暗いです',kana:'へやが くらいです',zh:'房间很暗'}],
+  'クラス':[{jp:'クラスに日本人が二人います',kana:'クラスに にほんじんが ふたりいます',zh:'班上有两个日本人'}],
+  'グラム':[{jp:'これは五百グラムです',kana:'これは ごひゃくグラムです',zh:'这个五百克'}],
+  '黒':[{jp:'黒と白、どちらが好きですか',kana:'くろと しろ どちらが すきですか',zh:'黑色和白色,你喜欢哪个'}],
+  '黒い':[{jp:'黒い服を着ています',kana:'くろい ふくを きています',zh:'穿着黑衣服'}],
+  '今朝':[{jp:'今朝は早く起きました',kana:'けさは はやく おきました',zh:'今早起得早'}],
+  '消す':[{jp:'テレビを消してください',kana:'テレビを けしてください',zh:'请关掉电视'}],
+  '五':[{jp:'五人の家族がいます',kana:'ごにんの かぞくが います',zh:'家里有五口人'}],
+  '声':[{jp:'彼女の声はきれいです',kana:'かのじょの こえは きれいです',zh:'她的声音很好听'}],
+  'ここ':[{jp:'ここに名前を書いてください',kana:'ここに なまえを かいてください',zh:'请在这里写名字'}],
+  '午後':[{jp:'午後から雨です',kana:'ごごから あめです',zh:'下午有雨'}],
+  '午前':[{jp:'午前中に手紙を出しました',kana:'ごぜんちゅうに てがみを だしました',zh:'上午寄了信'}],
+  'こちら':[{jp:'こちらの道は狭いです',kana:'こちらの みちは せまいです',zh:'这边路窄'}],
+  'コップ':[{jp:'コップに水を入れます',kana:'コップに みずを いれます',zh:'往杯子里倒水'}],
+  '言葉':[{jp:'日本の言葉を勉強しています',kana:'にほんの ことばを べんきょうしています',zh:'在学日本话'}],
+  'この':[{jp:'この本はおもしろいです',kana:'この ほんは おもしろいです',zh:'这本书有意思'}],
+  '御飯':[{jp:'毎日御飯を作ります',kana:'まいにち ごはんを つくります',zh:'每天做饭'}],
+  '困る':[{jp:'財布がなくて困りました',kana:'さいふが なくて こまりました',zh:'钱包丢了很为难'}],
+  'これ':[{jp:'これをください',kana:'これを ください',zh:'请给我这个'}],
+  'こんな':[{jp:'こんな大きな果物は初めてです',kana:'こんな おおきな くだものは はじめてです',zh:'第一次见这么大的水果'}],
+  'さあ':[{jp:'さあ、始めましょう',kana:'さあ はじめましょう',zh:'来,开始吧'}],
+  '財布':[{jp:'財布を落としました',kana:'さいふを おとしました',zh:'把钱包弄丢了'}],
+  '先':[{jp:'先に帰ります',kana:'さきに かえります',zh:'先回去'}],
+  '咲く':[{jp:'庭の花が咲きました',kana:'にわの はなが さきました',zh:'院里的花开了'}],
+  '差す':[{jp:'太陽が差してきました',kana:'たいようが さしてきました',zh:'太阳出来了'}],
+  '砂糖':[{jp:'コーヒーに砂糖を入れます',kana:'コーヒーに さとうを いれます',zh:'咖啡里加糖'}],
+  '寒い':[{jp:'冬の朝は寒いです',kana:'ふゆの あさは さむいです',zh:'冬天早晨很冷'}],
+  '三':[{jp:'三時に会いましょう',kana:'さんじに あいましょう',zh:'三点见吧'}],
+  '四':[{jp:'四月から学校が始まります',kana:'しがつから がっこうが はじまります',zh:'学校四月开学'}],
+  '塩':[{jp:'スープに塩を入れました',kana:'スープに しおを いれました',zh:'汤里加了盐'}],
+  'しかし':[{jp:'買いました。しかし、使いません',kana:'かいました しかし つかいません',zh:'买了,但不用'}],
+  '七':[{jp:'七時の電車に乗ります',kana:'しちじの でんしゃに のります',zh:'坐七点的电车'}],
+  '死ぬ':[{jp:'祖父は去年死にました',kana:'そふは きょねん しにました',zh:'祖父去年去世了'}],
+  '字引':[{jp:'字引で調べてください',kana:'じびきで しらべてください',zh:'请查字典'}],
+  '自分':[{jp:'自分で作りました',kana:'じぶんで つくりました',zh:'自己做的'}],
+  '閉まる':[{jp:'十時に店が閉まります',kana:'じゅうじに みせが しまります',zh:'店铺十点关门'}],
+  '閉める':[{jp:'ドアを閉めてください',kana:'ドアを しめてください',zh:'请关门'}],
+  '締める':[{jp:'ネクタイを締めます',kana:'ネクタイを しめます',zh:'系领带'}],
+  'シャツ':[{jp:'白いシャツを買いました',kana:'しろい シャツを かいました',zh:'买了白衬衫'}],
+  '知る':[{jp:'彼の名前を知っています',kana:'かれの なまえを しっています',zh:'知道他的名字'}],
+  '白':[{jp:'壁を白く塗りました',kana:'かべを しろく ぬりました',zh:'把墙刷成了白色'}],
+  '白い':[{jp:'白い花が咲きました',kana:'しろい はなが さきました',zh:'白色的花开了'}],
+  '吸う':[{jp:'新鮮な空気を吸います',kana:'しんせんな くうきを すいます',zh:'呼吸新鲜空气'}],
+  '好き':[{jp:'刺身が好きです',kana:'さしみが すきです',zh:'喜欢生鱼片'}],
+  'すぐに':[{jp:'すぐに行きます',kana:'すぐに いきます',zh:'马上就去'}],
+  '少し':[{jp:'少し休みましょう',kana:'すこし やすみましょう',zh:'稍微休息一下吧'}],
+  'ズボン':[{jp:'ズボンをはきました',kana:'ズボンを はきました',zh:'穿上裤子了'}],
+  '住む':[{jp:'東京に住んでいます',kana:'とうきょうに すんでいます',zh:'住在东京'}],
+  'する':[{jp:'毎朝ジョギングをします',kana:'まいあさ ジョギングを します',zh:'每天早上慢跑'}],
+  '背':[{jp:'背が高いですね',kana:'せが たかいですね',zh:'个子真高啊'}],
+  '生徒':[{jp:'あの先生は生徒に人気です',kana:'あの せんせいは せいとに にんきです',zh:'那位老师受学生欢迎'}],
+  '背広':[{jp:'背広を新調しました',kana:'せびろを しんちょうしました',zh:'新做了一套西装'}],
+  '狭い':[{jp:'この道は狭いです',kana:'この みちは せまいです',zh:'这条路很窄'}],
+  'ゼロ':[{jp:'点数はゼロでした',kana:'てんすうは ゼロでした',zh:'分数是零'}],
+  '千':[{jp:'千円を払いました',kana:'せんえんを はらいました',zh:'付了一千日元'}],
+  '全部':[{jp:'全部食べました',kana:'ぜんぶ たべました',zh:'全吃完了'}],
+  'そこ':[{jp:'そこに置いてください',kana:'そこに おいてください',zh:'请放在那里'}],
+  'そちら':[{jp:'そちらの天気はどうですか',kana:'そちらの てんきは どうですか',zh:'那边天气怎么样'}],
+  'その':[{jp:'その話は知りません',kana:'その はなしは しりません',zh:'不知道那件事'}],
+  'そば':[{jp:'銀行は駅のそばです',kana:'ぎんこうは えきの そばです',zh:'银行在车站旁边'}],
+  'それ':[{jp:'それは私の本です',kana:'それは わたしの ほんです',zh:'那是我的书'}],
+  '出す':[{jp:'ゴミを出してきます',kana:'ゴミを だしてきます',zh:'我去倒垃圾'}],
+  'たて':[{jp:'文字をたてに書きます',kana:'もじを たてに かきます',zh:'把字竖着写'}],
+  '頼む':[{jp:'手伝いを頼みました',kana:'てつだいを たのみました',zh:'拜托人帮忙了'}],
+  'たばこ':[{jp:'たばこを吸わないでください',kana:'たばこを すわないでください',zh:'请不要吸烟'}],
+  '多分':[{jp:'多分雨でしょう',kana:'たぶん あめでしょう',zh:'大概会下雨吧'}],
+  '卵':[{jp:'朝ごはんに卵を食べます',kana:'あさごはんに たまごを たべます',zh:'早饭吃鸡蛋'}],
+  '誰':[{jp:'あの人は誰ですか',kana:'あの ひとは だれですか',zh:'那个人是谁'}],
+  '誰か':[{jp:'誰か来ました',kana:'だれか きました',zh:'有人来了'}],
+  '違う':[{jp:'電話番号が違います',kana:'でんわばんごうが ちがいます',zh:'电话号码不对'}],
+  '近く':[{jp:'駅の近くに住んでいます',kana:'えきの ちかくに すんでいます',zh:'住在车站附近'}],
+  '地図':[{jp:'地図で場所を調べます',kana:'ちずで ばしょを しらべます',zh:'在地图上查地点'}],
+  '父':[{jp:'父は会社員です',kana:'ちちは かいしゃいんです',zh:'我爸爸是公司职员'}],
+  '使う':[{jp:'パソコンを使います',kana:'パソコンを つかいます',zh:'使用电脑'}],
+  '次':[{jp:'次のページを開いてください',kana:'つぎの ページを あいてください',zh:'请翻到下一页'}],
+  '着く':[{jp:'空港に着きました',kana:'くうこうに つきました',zh:'到机场了'}],
+  'つける':[{jp:'電気をつけました',kana:'でんきを つけました',zh:'开灯了'}],
+  '強い':[{jp:'彼は強い人です',kana:'かれは つよい ひとです',zh:'他是个坚强的人'}],
+  '手':[{jp:'手を洗ってから食べます',kana:'てを あらってから たべます',zh:'洗手后吃饭'}],
+  'できる':[{jp:'日本語が少しできます',kana:'にほんごが すこし できます',zh:'会说一点日语'}],
+  '出口':[{jp:'出口はどこですか',kana:'でぐちは どこですか',zh:'出口在哪里'}],
+  'テスト':[{jp:'明日テストがあります',kana:'あした テストが あります',zh:'明天有考试'}],
+  'では':[{jp:'では、また明日',kana:'では また あした',zh:'那么,明天见'}],
+  'でも':[{jp:'高いです。でも、欲しいです',kana:'たかいです でも ほしいです',zh:'很贵,但想要'}],
+  'テレビ':[{jp:'夜テレビを見ます',kana:'よる テレビを みます',zh:'晚上看电视'}],
+  '戸':[{jp:'戸を開けて風を入れます',kana:'とを あけて かぜを いれます',zh:'开门通风'}],
+  'ドア':[{jp:'ドアをノックしてください',kana:'ドアを ノックしてください',zh:'请敲门'}],
+  'トイレ':[{jp:'トイレはどこですか',kana:'トイレは どこですか',zh:'洗手间在哪里'}],
+  'どう':[{jp:'日本の生活はどうですか',kana:'にほんの せいかつは どうですか',zh:'日本的生活怎么样'}],
+  'どうぞ':[{jp:'どうぞおかけください',kana:'どうぞ おかけください',zh:'请坐'}],
+  'どうも':[{jp:'どうもありがとうございます',kana:'どうも ありがとうございます',zh:'非常感谢'}],
+  '十日':[{jp:'十日間旅行します',kana:'とおかかん りょこうします',zh:'旅行十天'}],
+  '時計':[{jp:'父の時計は古いです',kana:'ちちの とけいは ふるいです',zh:'爸爸的表很旧'}],
+  'どこ':[{jp:'どこへ行きたいですか',kana:'どこへ いきたいですか',zh:'你想去哪里'}],
+  '所':[{jp:'静かな所が好きです',kana:'しずかな ところが すきです',zh:'喜欢安静的地方'}],
+  'どちら':[{jp:'どちらがいいですか',kana:'どちらが いいですか',zh:'哪个更好'}],
+  'とても':[{jp:'この本はとても面白いです',kana:'この ほんは とても おもしろいです',zh:'这本书非常有趣'}],
+  'どなた':[{jp:'あの方はどなたですか',kana:'あの かたは どなたですか',zh:'那位是哪位'}],
+  '隣':[{jp:'隣の家に引っ越しました',kana:'となりの いえに ひっこしました',zh:'搬到了隔壁'}],
+  'どの':[{jp:'どの傘があなたのですか',kana:'どの かさが あなたのですか',zh:'哪把伞是你的'}],
+  '飛ぶ':[{jp:'鳥が空を飛んでいます',kana:'とりが そらを とんでいます',zh:'鸟在空中飞'}],
+  '止まる':[{jp:'電車が止まりました',kana:'でんしゃが とまりました',zh:'电车停了'}],
+  '鳥':[{jp:'鳥の声が聞こえます',kana:'とりの こえが きこえます',zh:'能听到鸟叫'}],
+  '取る':[{jp:'席を取っておきます',kana:'せきを とっておきます',zh:'先把座位占好'}],
+  '撮る':[{jp:'記念に写真を撮りました',kana:'きねんに しゃしんを とりました',zh:'拍了纪念照'}],
+  'どれ':[{jp:'どれが本物ですか',kana:'どれが ほんものですか',zh:'哪个是真的'}],
+  'どんな':[{jp:'どんな音楽が好きですか',kana:'どんな おんがくが すきですか',zh:'喜欢什么样的音乐'}],
+  'ない':[{jp:'分からないことは聞きます',kana:'わからない ことは ききます',zh:'不懂就问'}],
+  'ナイフ':[{jp:'ナイフでパンを切ります',kana:'ナイフで パンを きります',zh:'用刀切面包'}],
+  '鳴く':[{jp:'犬が鳴いています',kana:'いぬが ないています',zh:'狗在叫'}],
+  '無くす':[{jp:'鍵を無くしました',kana:'かぎを なくしました',zh:'把钥匙弄丢了'}],
+  'なぜ':[{jp:'なぜ日本語を勉強していますか',kana:'なぜ にほんごを べんきょうしていますか',zh:'为什么学日语'}],
+  '七つ':[{jp:'果物を七つ買いました',kana:'くだものを ななつ かいました',zh:'买了七个水果'}],
+  '七日':[{jp:'七日までに返します',kana:'なのかまでに かえします',zh:'七号之前归还'}],
+  '習う':[{jp:'ピアノを習っています',kana:'ピアノを ならっています',zh:'在学钢琴'}],
+  '並ぶ':[{jp:'パン屋に長い列が並んでいます',kana:'パンヤに ながい れつが ならんでいます',zh:'面包店排着长队'}],
+  'なる':[{jp:'庭の木が実になりました',kana:'にわの きが みに なりました',zh:'院里的树结果了'}],
+  '二':[{jp:'二時に始まります',kana:'にじに はじまります',zh:'两点开始'}],
+  '肉':[{jp:'肉はあまり食べません',kana:'にくは あまり たべません',zh:'不怎么吃肉'}],
+  '西':[{jp:'西の空が明るいです',kana:'にしの そらが あかるいです',zh:'西边天空很亮'}],
+  '荷物':[{jp:'荷物を預けました',kana:'にもつを あずけました',zh:'把行李托运了'}],
+  '庭':[{jp:'庭で野菜を作ります',kana:'にわで やさいを つくります',zh:'在院子里种菜'}],
+  '脱ぐ':[{jp:'靴を脱ぎました',kana:'くつを ぬぎました',zh:'脱了鞋'}],
+  '温い':[{jp:'お湯が温くなりました',kana:'おゆが ぬるく なりました',zh:'热水变温了'}],
+  '登る':[{jp:'山に登りました',kana:'やまに のぼりました',zh:'登山了'}],
+  '乗る':[{jp:'電車に乗ります',kana:'でんしゃに のります',zh:'坐电车'}],
+  '歯':[{jp:'歯医者へ行きました',kana:'はいしゃへ いきました',zh:'去看牙医了'}],
+  'はい':[{jp:'はい、そうです',kana:'はい そうです',zh:'是,是的'}],
+  '葉書':[{jp:'友達に葉書を出しました',kana:'ともだちに はがきを だしました',zh:'给朋友寄了明信片'}],
+  'はく':[{jp:'靴下をはきます',kana:'くつしたを はきます',zh:'穿袜子'}],
+  '箱':[{jp:'箱の中に何もありません',kana:'はこの なかに なにも ありません',zh:'箱子里什么都没有'}],
+  '橋':[{jp:'あの橋は古いです',kana:'あの はしは ふるいです',zh:'那座桥很旧'}],
+  '箸':[{jp:'箸で食べます',kana:'はしで たべます',zh:'用筷子吃'}],
+  '初め; 始め':[{jp:'初めは誰でも下手です',kana:'はじめは だれでも へたです',zh:'一开始谁都不擅长'}],
+  '走る':[{jp:'犬が公園を走っています',kana:'いぬが こうえんを はしっています',zh:'狗在公园跑'}],
+  'バス':[{jp:'バスで学校へ行きます',kana:'バスで がっこうへ いきます',zh:'坐公交上学'}],
+  '二十歳':[{jp:'娘は二十歳になりました',kana:'むすめは はたちに なりました',zh:'女儿满二十岁了'}],
+  '八':[{jp:'八時に会いましょう',kana:'はちじに あいましょう',zh:'八点见吧'}],
+  '二十日':[{jp:'毎月二十日に給料が出ます',kana:'まいつき はつかに きゅうりょうが でます',zh:'每月二十号发工资'}],
+  '鼻':[{jp:'鼻がかゆいです',kana:'はなが かゆいです',zh:'鼻子痒'}],
+  '話':[{jp:'そんな話は聞いたことがありません',kana:'そんな はなしは きいた ことが ありません',zh:'没听说过那种事'}],
+  '母':[{jp:'母は料理が上手です',kana:'ははは りょうりが じょうずです',zh:'我妈妈做饭好吃'}],
+  '速い':[{jp:'新幹線は速いです',kana:'しんかんせんは はやいです',zh:'新干线很快'}],
+  '貼る':[{jp:'壁にポスターを貼ります',kana:'かべに ポスターを はります',zh:'把海报贴在墙上'}],
+  '晴れ':[{jp:'明日は晴れでしょう',kana:'あしたは はれでしょう',zh:'明天大概是晴天'}],
+  '晴れる':[{jp:'雨が晴れてきました',kana:'あめが はれてきました',zh:'雨过天晴'}],
+  'パン':[{jp:'朝はパンを食べます',kana:'あさは パンを たべます',zh:'早上吃面包'}],
+  '引く':[{jp:'ドアを引いてください',kana:'ドアを ひいてください',zh:'请拉门'}],
+  '弾く':[{jp:'ピアノを弾くことができます',kana:'ピアノを ひく ことが できます',zh:'会弹钢琴'}],
+  '低い':[{jp:'声が低い人です',kana:'こえが ひくい ひとです',zh:'是个声音低沉的人'}],
+  '左':[{jp:'左の手に持っています',kana:'ひだりの てに もっています',zh:'拿在左手里'}],
+  '一つ':[{jp:'一つだけください',kana:'ひとつだけ ください',zh:'请给我一个就好'}],
+  '一人':[{jp:'一人で住んでいます',kana:'ひとりで すんでいます',zh:'一个人住'}],
+  '暇':[{jp:'日曜日は暇です',kana:'にちようびは ひまです',zh:'周日有空'}],
+  '広い':[{jp:'この部屋は広いですね',kana:'この へやは ひろいですね',zh:'这个房间真宽敞'}],
+  '吹く':[{jp:'風が強く吹いています',kana:'かぜが つよく ふいています',zh:'风刮得很大'}],
+  '服':[{jp:'服を買いました',kana:'ふくを かいました',zh:'买了衣服'}],
+  '二つ':[{jp:'りんごが二つあります',kana:'りんごが ふたつ あります',zh:'有两个苹果'}],
+  '二人':[{jp:'二人で映画を見ました',kana:'ふたりで えいがを みました',zh:'两个人看了电影'}],
+  '二日':[{jp:'二日間かかりました',kana:'ふつかかん かかりました',zh:'花了两天'}],
+  '太い':[{jp:'この木は太いです',kana:'この きは ふといです',zh:'这棵树很粗'}],
+  '降る':[{jp:'雪が降っています',kana:'ゆきが ふっています',zh:'正在下雪'}],
+  '下手':[{jp:'歌は下手ですが好きです',kana:'うたは へたですが すきです',zh:'歌唱得不好但喜欢'}],
+  'ベッド':[{jp:'ベッドで寝ます',kana:'ベッドで ねます',zh:'睡在床上'}],
+  'ペット':[{jp:'ペットを飼っています',kana:'ペットを かっています',zh:'养着宠物'}],
+  '辺':[{jp:'この辺にコンビニがあります',kana:'この へんに コンビニが あります',zh:'这一带有便利店'}],
+  'ペン':[{jp:'ペンで書いてください',kana:'ペンで かいてください',zh:'请用钢笔写'}],
+  '帽子':[{jp:'暖かい帽子を買いました',kana:'あたたかい ぼうしを かいました',zh:'买了顶暖和的帽子'}],
+  '欲しい':[{jp:'水が欲しいです',kana:'みずが ほしいです',zh:'想要喝水'}],
+  'ポスト':[{jp:'ポストに手紙を入れました',kana:'ポストに てがみを いれました',zh:'把信投进邮筒'}],
+  '細い':[{jp:'この道は細いです',kana:'この みちは ほそいです',zh:'这条路很细'}],
+  'ボタン':[{jp:'ボタンが取れました',kana:'ボタンが とれました',zh:'扣子掉了'}],
+  'ホテル':[{jp:'ホテルを予約しました',kana:'ホテルを よやくしました',zh:'订了酒店'}],
+  '本':[{jp:'本を三冊買いました',kana:'ほんを さんさつ かいました',zh:'买了三本书'}],
+  '前':[{jp:'駅の前で待ち合わせましょう',kana:'えきの まえで まちあわせましょう',zh:'在车站前碰头吧'}],
+  '曲る':[{jp:'角を曲がると駅があります',kana:'かどを まがると えきが あります',zh:'拐过弯就是车站'}],
+  'まずい':[{jp:'この料理はまずいです',kana:'この りょうりは まずいです',zh:'这个菜很难吃'}],
+  'また':[{jp:'また来てください',kana:'また きてください',zh:'请再来'}],
+  'まだ':[{jp:'まだ食べていません',kana:'まだ たべていません',zh:'还没吃'}],
+  '町':[{jp:'この町は静かです',kana:'この まちは しずかです',zh:'这个城镇很安静'}],
+  '待つ':[{jp:'少々お待ちください',kana:'しょうしょう おまちください',zh:'请稍等'}],
+  'マッチ':[{jp:'マッチで火をつけます',kana:'マッチで ひを つけます',zh:'用火柴点火'}],
+  '丸い; 円い':[{jp:'丸いテーブルを買いました',kana:'まるい テーブルを かいました',zh:'买了张圆桌'}],
+  '万':[{jp:'このカメラは三万円でした',kana:'この カメラは さんまんえんでした',zh:'这个相机三万日元'}],
+  '磨く':[{jp:'毎晩歯を磨きます',kana:'まいばん はを みがきます',zh:'每晚刷牙'}],
+  '右':[{jp:'右を見てください',kana:'みぎを みてください',zh:'请看右边'}],
+  '店':[{jp:'この店はおいしいです',kana:'この みせは おいしいです',zh:'这家店很好吃'}],
+  '見せる':[{jp:'免許証を見せてください',kana:'めんきょしょうを みせてください',zh:'请出示证件'}],
+  '道':[{jp:'道で財布を拾いました',kana:'みちで さいふを ひろいました',zh:'在路上捡到钱包'}],
+  '緑':[{jp:'緑の森が好きです',kana:'みどりの もりが すきです',zh:'喜欢绿色的森林'}],
+  '南':[{jp:'南の島へ旅行します',kana:'みなみの しまへ りょこうします',zh:'去南方的岛旅行'}],
+  'みんな':[{jp:'みんなで歌いました',kana:'みんなで うたいました',zh:'大家一起唱了歌'}],
+  '六日':[{jp:'六日に帰ります',kana:'むいかに かえります',zh:'六号回去'}],
+  '向こう':[{jp:'向こうに山が見えます',kana:'むこうに やまが みえます',zh:'对面能看到山'}],
+  '村':[{jp:'小さい村で生まれました',kana:'ちいさい むらで うまれました',zh:'出生在一个小村庄'}],
+  '眼鏡':[{jp:'眼鏡をかけた人です',kana:'めがねを かけた ひとです',zh:'是戴眼镜的人'}],
+  'もう':[{jp:'もう昼ごはんを食べました',kana:'もう ひるごはんを たべました',zh:'已经吃过午饭了'}],
+  '持つ':[{jp:'荷物を持ちましょう',kana:'にもつを もちましょう',zh:'我来拿行李吧'}],
+  '物':[{jp:'きれいな物が好きです',kana:'きれいな ものが すきです',zh:'喜欢漂亮的东西'}],
+  '門':[{jp:'大学の門の前で会いましょう',kana:'だいがくの もんの まえで あいましょう',zh:'在大学校门前见吧'}],
+  '八百屋':[{jp:'八百屋で野菜を買います',kana:'やおやで やさいを かいます',zh:'在蔬菜店买菜'}],
+  '休み':[{jp:'会社は月曜が休みです',kana:'かいしゃは げつようが やすみです',zh:'公司周一休息'}],
+  '休む':[{jp:'熱があるので休みます',kana:'ねつが あるので やすみます',zh:'发烧了所以请假休息'}],
+  'やる':[{jp:'家事をやります',kana:'かじを やります',zh:'做家务'}],
+  '昨夜':[{jp:'昨夜はよく眠れました',kana:'ゆうべは よく ねむれました',zh:'昨晚睡得很好'}],
+  '雪':[{jp:'北国ではもう雪が降りました',kana:'きたぐにでは もう ゆきが ふりました',zh:'北方已经下过雪了'}],
+  '八日':[{jp:'八日の午後に来てください',kana:'ようかの ごごに きてください',zh:'请八号下午来'}],
+  'よく':[{jp:'よく温泉へ行きます',kana:'よく おんせんへ いきます',zh:'常去温泉'}],
+  '横':[{jp:'横に並んでください',kana:'よこに ならんでください',zh:'请横着排'}],
+  '呼ぶ':[{jp:'名前を呼ばれました',kana:'なまえを よばれました',zh:'被叫到名字了'}],
+  '読む':[{jp:'毎晩本を読みます',kana:'まいばん ほんを よみます',zh:'每晚读书'}],
+  '夜':[{jp:'夜は静かです',kana:'よるは しずかです',zh:'晚上很安静'}],
+  '弱い':[{jp:'この動物は寒さに弱いです',kana:'この どうぶつは さむさに よわいです',zh:'这种动物怕冷'}],
+  'ラジオ':[{jp:'ラジオでニュースを聞きます',kana:'ラジオで ニュースを ききます',zh:'听广播新闻'}],
+  '零':[{jp:'点数は零点でした',kana:'てんすうは れいてんでした',zh:'得了零分'}],
+  '廊下':[{jp:'廊下を走らないでください',kana:'ろうかを はしらないでください',zh:'不要在走廊跑'}],
+  '六':[{jp:'六千円ありました',kana:'ろくせんえん ありました',zh:'有六千日元'}],
+  '若い':[{jp:'若い人が多い町です',kana:'わかい ひとが おおい まちです',zh:'年轻人多的小镇'}],
+  '分かる':[{jp:'この意味が分かりました',kana:'この いみが わかりました',zh:'明白这个意思了'}],
+  '私':[{jp:'私は学生です',kana:'わたしは がくせいです',zh:'我是学生'}],
+  '渡す':[{jp:'これを田中さんに渡してください',kana:'これを たなかさんに わたしてください',zh:'请把这个转交给田中先生'}],
+  '渡る':[{jp:'道を渡るとき気をつけて',kana:'みちを わたるとき きをつけて',zh:'过马路时要小心'}],
+  '悪い':[{jp:'悪いことをしました',kana:'わるい ことを しました',zh:'做了错事'}],
 };
 function zhGloss(w){ // 从词条中文释义提取干净的词义(去注音/词性标记)
   const g = (w.meaning || '').replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '')
@@ -1315,6 +1709,7 @@ function renderHome(){
   cc.innerHTML = done
     ? '<h2>' + sec + ' · ' + u.name + ' 已完成 ✓</h2><p>点击开始下一个单元 →</p>'
     : '<h2>继续学习:' + sec + ' · ' + u.name + '</h2><p>' + u.words[0].kanji + ' 等 ' + u.words.length + ' 词 · 已学 ' + learned + '/' + u.words.length + ',点击继续 →</p>';
+  renderTopbar();
 }
 function currentUnit(units){ // 学习进度定位:最后一个有进度的单元;已完成则指向下一单元
   const m = wstate();
@@ -1460,13 +1855,23 @@ function deleteCustom(i){
 }
 
 /* ---- 进度备份与恢复:序列化 localStorage 为可复制的导出码 ---- */
-const XFER_KEYS = ['kf_words', 'kf_custom', 'kf_stats', 'kf_theme', 'kf_offset'];
-function exportProgress(){
-  const data = {};
+const XFER_KEYS = ['kf_words', 'kf_custom', 'kf_stats', 'kf_theme', 'kf_offset', 'kf_rate', 'kf_today'];
+function xferData(){
+  const data = { v: 1, exported_at: new Date().toISOString() };
   for (const k of XFER_KEYS){ const v = localStorage.getItem(k); if (v) data[k] = v; }
+  return data;
+}
+function applyXferData(data){
+  let n = 0;
+  for (const k of Object.keys(data)) if (XFER_KEYS.includes(k)){ localStorage.setItem(k, String(data[k])); n++; }
+  refreshWords();
+  renderStats(); renderHome();
+  return n;
+}
+function exportProgress(){
   const ta = $('xfer-box');
   ta.style.display = 'block';
-  ta.value = 'KF1.' + btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  ta.value = 'KF1.' + btoa(unescape(encodeURIComponent(JSON.stringify(xferData()))));
   ta.focus(); ta.select();
   $('xfer-msg').textContent = '导出码已生成(已全选):复制保存,在另一台设备粘贴后点「导入」';
 }
@@ -1476,12 +1881,33 @@ function importProgress(){
   if (!raw.startsWith('KF1.')){ msg.textContent = '这不是有效的导出码(应以 KF1. 开头)'; return; }
   try {
     const data = JSON.parse(decodeURIComponent(escape(atob(raw.slice(4)))));
-    let n = 0;
-    for (const k of Object.keys(data)) if (XFER_KEYS.includes(k)) { localStorage.setItem(k, String(data[k])); n++; }
-    refreshWords();
-    renderStats(); renderHome();
+    const n = applyXferData(data);
     msg.textContent = '导入成功(' + n + ' 项):已学 ' + knownCount() + ' 词,生词本 ' + loadCustomWords().length + ' 个';
   } catch (e){ msg.textContent = '导入码无法解析,请确认完整复制'; }
+}
+function exportProgressFile(){ // 文件备份:比复制文本码更适合手机操作
+  const blob = new Blob([JSON.stringify(xferData(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kanaflow-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  $('xfer-msg').textContent = '备份文件已开始下载,请妥善保存';
+}
+function importProgressFile(input){
+  const msg = $('xfer-msg');
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const data = JSON.parse(rd.result);
+      if (!data.v) throw 0;
+      const n = applyXferData(data);
+      msg.textContent = '从文件导入成功(' + n + ' 项):已学 ' + knownCount() + ' 词,生词本 ' + loadCustomWords().length + ' 个';
+    } catch (e){ msg.textContent = '备份文件无法解析'; }
+  };
+  rd.readAsText(f);
+  input.value = '';
 }
 function kataToHiraStr(s){ let out = ''; for (const ch of (s || '')){ const c = ch.codePointAt(0); out += (c >= 0x30A1 && c <= 0x30F6) ? String.fromCharCode(c - 0x60) : ch; } return out; }
 function analyzeText(){
@@ -1529,8 +1955,11 @@ function analyzeTextSmart(text, box, tokenizer, zmap){
       && /[\u3040-\u30ff\u4e00-\u9faf]/.test(t.surface_form) && t.surface_form.length >= 2;
     if (!hit && isContent && !seenNew.has(entry)){
       seenNew.add(entry);
+      // 活用词(词典形≠表层形)直接存表层形:字形和假名都是句中形态,拼写练习才一致
+      const inflected = entry !== t.surface_form;
+      const form = inflected ? t.surface_form : entry;
       newOnes.push({
-        kanji: entry, kana: reading, romaji: '', d: guessDiff(reading),
+        kanji: form, kana: reading, romaji: '', d: guessDiff(reading),
         meaning: zmap ? (stripGlossMarks(zmap.get(entry)) || stripGlossMarks(zmap.get(t.surface_form)) || stripGlossMarks(zmap.get(reading))) : '',
       });
     }
@@ -1830,6 +2259,7 @@ function speak(text){
 buildKana();
 renderStats();
 renderHome();
+renderTopbar();
 applyTheme();
 loadBank();
 setRate(ttsRate(), true);
